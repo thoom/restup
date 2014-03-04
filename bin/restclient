@@ -9,7 +9,7 @@ require 'openssl'
 require 'uri'
 require 'yaml'
 
-require 'restclient'
+require 'rest_client'
 
 def puts_header(h)
   puts header h
@@ -21,13 +21,13 @@ end
 
 def header(h)
   len = h.gsub(/\e\[(\d+)m/, '').length
-  l = '-' * len
+  l   = '-' * len
   "\n#{ h }\n#{ l }\n"
 end
 
 def section(h)
   len = h.gsub(/\e\[(\d+)m/, '').length
-  l = '-' * (len + 4)
+  l   = '-' * (len + 4)
   "\n#{ l }\n| #{ h } |\n#{ l }\n"
 end
 
@@ -42,9 +42,9 @@ def xp(xml_text)
 </xsl:stylesheet>
 XSL
 
-  doc = Nokogiri::XML(xml_text)
+  doc  = Nokogiri::XML(xml_text)
   xslt = Nokogiri::XSLT(xsl)
-  out = xslt.transform(doc)
+  out  = xslt.transform(doc)
 
   out.to_xml
 end
@@ -64,14 +64,13 @@ def title
   puts " #{ author_copy } ".white_on_magenta
 end
 
-if __FILE__ == $0
-  puts title
+puts title
 
-  if ARGV.length == 0 || ARGV.length == 1 && ARGV[0] == '--help'
-    puts_section 'How to use the RestClient'
+if ARGV.length == 0 || ARGV.length == 1 && ARGV[0] == '--help'
+  puts_section 'How to use the RestClient'
 
-    puts <<TEXT
-The RestClient works with APIs that either use Basic Authentication. To use other forms of
+  puts <<TEXT
+The RestClient works with APIs that use Basic Authentication. To use other forms of
 authentication, custom headers can be stored in the config file as described below.
 
 It uses a #{ '.restclient.yml'.yellow } file to pull in defaults and provides several shortcut methods
@@ -81,9 +80,9 @@ If the API uses form encoded input, you need to define your post in JSON format.
 will encode it automatically.
 TEXT
 
-    puts_section "Flags"
+  puts_section "Flags"
 
-    puts <<TEXT
+  puts <<TEXT
 ARGUMENT    DESC
 --------    -----
 --concise   Disables verbose output
@@ -105,8 +104,8 @@ ARGUMENT    DESC
 -c {cert}   Imports cert for Client-Authentication endpoints
 TEXT
 
-    puts_section "YAML config"
-puts <<TEXT
+  puts_section "YAML config"
+  puts <<TEXT
 The client uses two different methods for find the YAML file #{ '.restclient.yml'.yellow }. It will
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
@@ -128,11 +127,11 @@ KEY         DESC
             API must support X-HTTP-Method-Override.
 TEXT
 
-    puts_section 'Examples'
+  puts_section 'Examples'
 
-    puts_header 'GET Request'
+  puts_header 'GET Request'
 
-puts <<TEXT
+  puts <<TEXT
 The YAML config:
 :url: http://example.com/api
 :user: myname
@@ -147,9 +146,9 @@ It would return JSON values. If successful, the JSON would be parsed and highlig
 the an error was returned (an HTTP response code >= 400), the body would be in #{ 'RED'.red }.
 TEXT
 
-    puts_header 'POST Request'
+  puts_header 'POST Request'
 
-    puts <<TEXT
+  puts <<TEXT
 The YAML config:
 :url: http://example.com/api
 :user: myname
@@ -167,136 +166,135 @@ the an error was returned (an HTTP response code >= 400), the body would be in #
 TEXT
 
 
-    exit
-  end
+  exit
+end
 
-  begin
-    client = Thoom::RestClient.new
-    verbose = true
-    filename = nil
+begin
+  client   = Thoom::RestClient.new
+  verbose  = true
+  filename = nil
 
-    if ARGV.length == 1
-      client.method = 'GET'
-      client.endpoint = ARGV.shift.dup
-    else
-      client.method = ARGV.shift.dup
-      client.endpoint = ARGV.shift.dup
+  if ARGV.length == 1
+    client.method   = 'GET'
+    client.endpoint = ARGV.shift.dup
+  else
+    client.method   = ARGV.shift.dup
+    client.endpoint = ARGV.shift.dup
+
+    param = nil
+    ARGV.each do |arg|
+      if %w(-d -e -f -h -c).include? arg
+        param = arg
+        next
+      end
+
+      case arg
+      when '--concise'
+        verbose = false
+      when '-form'
+        client.headers << 'Content-Type: application/x-www-form-urlencoded'
+      when '-j'
+        client.headers << "Content-Type: #{ client.get_config_val(:json) }; charset=UTF-8"
+        client.headers << "Accept:  #{ client.get_config_val(:json) }"
+      when '-jc'
+        client.headers << "Content-Type: #{ client.get_config_val(:json) }"
+      when '-ja'
+        client.headers << "Accept: #{ client.get_config_val(:json) }"
+      when '-x'
+        client.headers << "Content-Type: #{ client.get_config_val(:xml) }; charset=UTF-8"
+        client.headers << "Accept: #{ client.get_config_val(:xml) }"
+      when '-xc'
+        client.headers << "Content-Type: #{ client.get_config_val(:xml) }"
+      when '-xa'
+        client.headers << "Accept: #{ client.get_config_val(:xml) }"
+      else
+        case param
+        when '-h'
+          client.headers << arg
+        when '-d'
+          client.data = arg
+        when '-f'
+          filename    = arg
+          client.data = File.read(File.realpath(arg, Dir.pwd))
+        when '-e'
+          client.env = arg
+        when '-c'
+          client.cert = arg
+        else
+          # Do nothing for now
+        end
+      end
 
       param = nil
-      ARGV.each do |arg|
-        if %w(-d -e -f -h -c).include? arg
-          param = arg
-          next
-        end
-
-        case arg
-        when '--concise'
-          verbose = false
-        when '-form'
-          client.headers << 'Content-Type: application/x-www-form-urlencoded'
-        when '-j'
-          client.headers << "Content-Type: #{ client.get_config_val(:json) }; charset=UTF-8"
-          client.headers << "Accept:  #{ client.get_config_val(:json) }"
-        when '-jc'
-          client.headers << "Content-Type: #{ client.get_config_val(:json) }"
-        when '-ja'
-          client.headers << "Accept: #{ client.get_config_val(:json) }"
-        when '-x'
-          client.headers << "Content-Type: #{ client.get_config_val(:xml) }; charset=UTF-8"
-          client.headers << "Accept: #{ client.get_config_val(:xml) }"
-        when '-xc'
-          client.headers << "Content-Type: #{ client.get_config_val(:xml) }"
-        when '-xa'
-          client.headers << "Accept: #{ client.get_config_val(:xml) }"
-        else
-          case param
-          when '-h'
-            client.headers << arg
-          when '-d'
-            client.data = arg
-          when '-f'
-            filename = arg
-            client.data = File.read(File.realpath(arg, Dir.pwd))
-          when '-e'
-            client.env = arg
-          when '-c'
-            client.cert = arg
-          else
-            # Do nothing for now
-          end
-        end
-
-        param = nil
-      end
     end
-
-    request = client.request
-
-    path = client.uri.path.sub(client.endpoint, '')
-    query = ''
-    if client.uri.query
-      query += '?' + client.uri.query.sub(client.endpoint, '')
-    end
-
-    puts_section "REQUEST: #{ client.method.upcase.cyan } " + ("#{ client.uri.host }:#{ client.uri.port.to_s }#{ path }").blue + query.yellow + client.endpoint.yellow
-
-    if verbose
-      unless request.respond_to? 'each_header'
-        puts_header 'MALFORMED REQUEST'
-        puts request.red, "\n"
-        exit
-      end
-
-      puts_header 'HEADERS'
-      request.each_header { |k, v| puts "#{ k }: #{ v }\n" }
-
-      if client.data
-        puts_header 'BODY'
-
-        if client.data.ascii_only?
-          puts client.data
-        else
-          puts "File: '#{ filename }' posted, but contains non-ASCII data, so it's not echoed here."
-        end
-      end
-    end
-
-
-    response = client.submit request
-  rescue Exception => e
-    puts "\n#{ e.message }".red
   end
 
-  if response.respond_to? :each_header
-    puts_section "RESPONSE: #{ response.code.to_i >= 400 ? response.code.red : response.code.green }"
+  request = client.request
 
-    if verbose || response.code.to_i >= 400
-      puts_header 'HEADERS'
-      response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+  path  = client.uri.path.sub(client.endpoint, '')
+  query = ''
+  if client.uri.query
+    query += '?' + client.uri.query.sub(client.endpoint, '')
+  end
+
+  puts_section "REQUEST: #{ client.method.upcase.cyan } " + ("#{ client.uri.host }:#{ client.uri.port.to_s }#{ path }").blue + query.yellow + client.endpoint.yellow
+
+  if verbose
+    unless request.respond_to? 'each_header'
+      puts_header 'MALFORMED REQUEST'
+      puts request.red, "\n"
+      exit
     end
 
-    puts_header 'BODY'
-    if !response.body || response.body.empty?
-      puts 'NONE'.yellow
-    else
-      if response['content-type'].include? 'json'
-        if response.code.to_i < 400
-          puts JSON.pretty_unparse(JSON.parse response.body).green
-        else
-          puts JSON.pretty_unparse(JSON.parse response.body).red
-        end
-      elsif response['content-type'].include? 'xml'
-        if response.code.to_i < 400
-          puts xp(response.body).green
-        else
-          puts xp(response.body).red
-        end
+    puts_header 'HEADERS'
+    request.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+
+    if client.data
+      puts_header 'BODY'
+
+      if client.data.ascii_only?
+        puts client.data
       else
-        puts response.body.red
+        puts "File: '#{ filename }' posted, but contains non-ASCII data, so it's not echoed here."
       end
     end
-  else
-    puts response
   end
-  puts "\n"
+
+
+  response = client.submit request
+rescue Exception => e
+  puts "\n#{ e.message }".red
 end
+
+if response.respond_to? :each_header
+  puts_section "RESPONSE: #{ response.code.to_i >= 400 ? response.code.red : response.code.green }"
+
+  if verbose || response.code.to_i >= 400
+    puts_header 'HEADERS'
+    response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+  end
+
+  puts_header 'BODY'
+  if !response.body || response.body.empty?
+    puts 'NONE'.yellow
+  else
+    if response['content-type'].include? 'json'
+      if response.code.to_i < 400
+        puts JSON.pretty_unparse(JSON.parse response.body).green
+      else
+        puts JSON.pretty_unparse(JSON.parse response.body).red
+      end
+    elsif response['content-type'].include? 'xml'
+      if response.code.to_i < 400
+        puts xp(response.body).green
+      else
+        puts xp(response.body).red
+      end
+    else
+      puts response.body.red
+    end
+  end
+else
+  puts response
+end
+puts "\n"

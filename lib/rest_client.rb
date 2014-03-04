@@ -11,7 +11,7 @@ require 'yaml'
 module Thoom
   class RestClient
 
-    VERSION = 0.2
+    VERSION = 0.6
 
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log, :env
@@ -47,7 +47,7 @@ module Thoom
         request.basic_auth(user, pass)
       end
 
-      request['User-Agent'] = 'Thoom::RestClient/' + self::VERSION
+      request['User-Agent'] = 'Thoom::RestClient/' + VERSION.to_s
       request['Content-Length'] = 0
 
       if m == 'post'
