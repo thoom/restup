@@ -1,0 +1,302 @@
+#!/usr/bin/env ruby
+
+require 'colored'
+require 'json'
+require 'logger'
+require 'net/http'
+require 'nokogiri'
+require 'openssl'
+require 'uri'
+require 'yaml'
+
+require 'restclient'
+
+def puts_header(h)
+  puts header h
+end
+
+def puts_section(h)
+  puts section h
+end
+
+def header(h)
+  len = h.gsub(/\e\[(\d+)m/, '').length
+  l = '-' * len
+  "\n#{ h }\n#{ l }\n"
+end
+
+def section(h)
+  len = h.gsub(/\e\[(\d+)m/, '').length
+  l = '-' * (len + 4)
+  "\n#{ l }\n| #{ h } |\n#{ l }\n"
+end
+
+def xp(xml_text)
+  xsl = <<XSL
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
+  <xsl:strip-space elements="*"/>
+  <xsl:template match="/">
+    <xsl:copy-of select="."/>
+  </xsl:template>
+</xsl:stylesheet>
+XSL
+
+  doc = Nokogiri::XML(xml_text)
+  xslt = Nokogiri::XSLT(xsl)
+  out = xslt.transform(doc)
+
+  out.to_xml
+end
+
+def title
+  client_copy = "Thoom::RestClient v#{ Thoom::RestClient::VERSION }"
+  author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
+
+  diff = client_copy.length - author_copy.length
+  if diff < 0
+    client_copy = client_copy.center(author_copy.length, ' ')
+  elsif diff > 0
+    author_copy = author_copy.center(client_copy.length, ' ')
+  end
+
+  puts "\n", " #{ client_copy } ".magenta_on_white
+  puts " #{ author_copy } ".white_on_magenta
+end
+
+if __FILE__ == $0
+  puts title
+
+  if ARGV.length == 0 || ARGV.length == 1 && ARGV[0] == '--help'
+    puts_section 'How to use the RestClient'
+
+    puts <<TEXT
+The RestClient works with APIs that either use Basic Authentication. To use other forms of
+authentication, custom headers can be stored in the config file as described below.
+
+It uses a #{ '.restclient.yml'.yellow } file to pull in defaults and provides several shortcut methods
+that can simplify using a REST-based API.
+
+If the API uses form encoded input, you need to define your post in JSON format. The client
+will encode it automatically.
+TEXT
+
+    puts_section "Flags"
+
+    puts <<TEXT
+ARGUMENT    DESC
+--------    -----
+--concise   Disables verbose output
+
+-form       This will convert JSON-formatted input and encode it as x-www-form-urlencoded
+
+-j          Sets JSON Content-Type and Accept headers based on the :json: config MIME type
+-jc         Sets JSON Content-Type header
+-ja         Sets JSON Accept header
+
+-x          Sets XML Content-Type and Accept headers based on the :xml: config MIME type
+-xc         Sets XML Content-Type header
+-xa         Sets XML Accept header
+
+-h {header} Sets arbitrary header passed in format "HEADER: VALUE"
+-d {data}   Sets data string as POST body
+-f {file}   Imports file as POST body (assumes file based on current location)
+-e {env}    Sets YAML environment for the request
+-c {cert}   Imports cert for Client-Authentication endpoints
+TEXT
+
+    puts_section "YAML config"
+puts <<TEXT
+The client uses two different methods for find the YAML file #{ '.restclient.yml'.yellow }. It will
+first look in the current directory. If it is not present, it will then look in the current user's
+home directory.
+
+This makes it possible to use the restclient to connect to different APIs simply by changing
+folders.
+
+KEY         DESC
+----        -----
+:user:      The username. If missing or blank, the client will not use Basic Authentication
+:pass:      The password. If missing or blank, the client will not use Basic Authentication
+
+:url:       The base REST url
+:json:      The default JSON MIME type. If missing, the client uses "application/json"
+:xml:       The default XML MIME type. If missing, the client uses "application/xml"
+
+:headers:   Array of default headers. Useful for custom headers or headers used in every request
+:xmethods:  Array of nonstandard methods that are accepted by the API. To use these methods the
+            API must support X-HTTP-Method-Override.
+TEXT
+
+    puts_section 'Examples'
+
+    puts_header 'GET Request'
+
+puts <<TEXT
+The YAML config:
+:url: http://example.com/api
+:user: myname
+:pass: P@ssWord
+
+#{ 'restclient get /hello/world -j'.magenta }
+
+Submits a GET request to #{ 'http://example/api/hello/world'.blue } with Basic Auth header using the
+user and pass values in the config.
+
+It would return JSON values. If successful, the JSON would be parsed and highlighted in #{ 'GREEN'.green }. If
+the an error was returned (an HTTP response code >= 400), the body would be in #{ 'RED'.red }.
+TEXT
+
+    puts_header 'POST Request'
+
+    puts <<TEXT
+The YAML config:
+:url: http://example.com/api
+:user: myname
+:pass: P@ssWord
+
+#{ 'restclient post /hello/world -j -f order.json'.magenta }
+
+Submits a POST request to #{ 'http://example/api/hello/world'.blue } with Basic Auth header using the
+user and pass values in the config. It imports the order.json and passes it to the API as application/json
+content type.
+
+It would return JSON values. If successful, the JSON would be parsed and highlighted in #{ 'GREEN'.green }. If
+the an error was returned (an HTTP response code >= 400), the body would be in #{ 'RED'.red }.
+
+TEXT
+
+
+    exit
+  end
+
+  begin
+    client = Thoom::RestClient.new
+    verbose = true
+    filename = nil
+
+    if ARGV.length == 1
+      client.method = 'GET'
+      client.endpoint = ARGV.shift.dup
+    else
+      client.method = ARGV.shift.dup
+      client.endpoint = ARGV.shift.dup
+
+      param = nil
+      ARGV.each do |arg|
+        if %w(-d -e -f -h -c).include? arg
+          param = arg
+          next
+        end
+
+        case arg
+        when '--concise'
+          verbose = false
+        when '-form'
+          client.headers << 'Content-Type: application/x-www-form-urlencoded'
+        when '-j'
+          client.headers << "Content-Type: #{ client.get_config_val(:json) }; charset=UTF-8"
+          client.headers << "Accept:  #{ client.get_config_val(:json) }"
+        when '-jc'
+          client.headers << "Content-Type: #{ client.get_config_val(:json) }"
+        when '-ja'
+          client.headers << "Accept: #{ client.get_config_val(:json) }"
+        when '-x'
+          client.headers << "Content-Type: #{ client.get_config_val(:xml) }; charset=UTF-8"
+          client.headers << "Accept: #{ client.get_config_val(:xml) }"
+        when '-xc'
+          client.headers << "Content-Type: #{ client.get_config_val(:xml) }"
+        when '-xa'
+          client.headers << "Accept: #{ client.get_config_val(:xml) }"
+        else
+          case param
+          when '-h'
+            client.headers << arg
+          when '-d'
+            client.data = arg
+          when '-f'
+            filename = arg
+            client.data = File.read(File.realpath(arg, Dir.pwd))
+          when '-e'
+            client.env = arg
+          when '-c'
+            client.cert = arg
+          else
+            # Do nothing for now
+          end
+        end
+
+        param = nil
+      end
+    end
+
+    request = client.request
+
+    path = client.uri.path.sub(client.endpoint, '')
+    query = ''
+    if client.uri.query
+      query += '?' + client.uri.query.sub(client.endpoint, '')
+    end
+
+    puts_section "REQUEST: #{ client.method.upcase.cyan } " + ("#{ client.uri.host }:#{ client.uri.port.to_s }#{ path }").blue + query.yellow + client.endpoint.yellow
+
+    if verbose
+      unless request.respond_to? 'each_header'
+        puts_header 'MALFORMED REQUEST'
+        puts request.red, "\n"
+        exit
+      end
+
+      puts_header 'HEADERS'
+      request.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+
+      if client.data
+        puts_header 'BODY'
+
+        if client.data.ascii_only?
+          puts client.data
+        else
+          puts "File: '#{ filename }' posted, but contains non-ASCII data, so it's not echoed here."
+        end
+      end
+    end
+
+
+    response = client.submit request
+  rescue Exception => e
+    puts "\n#{ e.message }".red
+  end
+
+  if response.respond_to? :each_header
+    puts_section "RESPONSE: #{ response.code.to_i >= 400 ? response.code.red : response.code.green }"
+
+    if verbose || response.code.to_i >= 400
+      puts_header 'HEADERS'
+      response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+    end
+
+    puts_header 'BODY'
+    if !response.body || response.body.empty?
+      puts 'NONE'.yellow
+    else
+      if response['content-type'].include? 'json'
+        if response.code.to_i < 400
+          puts JSON.pretty_unparse(JSON.parse response.body).green
+        else
+          puts JSON.pretty_unparse(JSON.parse response.body).red
+        end
+      elsif response['content-type'].include? 'xml'
+        if response.code.to_i < 400
+          puts xp(response.body).green
+        else
+          puts xp(response.body).red
+        end
+      else
+        puts response.body.red
+      end
+    end
+  else
+    puts response
+  end
+  puts "\n"
+end
