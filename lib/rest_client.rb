@@ -11,7 +11,7 @@ require 'yaml'
 module Thoom
   class RestClient
 
-    VERSION = 0.6
+    VERSION = '0.6.1'
 
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log, :env
@@ -47,7 +47,7 @@ module Thoom
         request.basic_auth(user, pass)
       end
 
-      request['User-Agent'] = 'Thoom::RestClient/' + VERSION.to_s
+      request['User-Agent'] = 'Thoom::RestClient/' + VERSION
       request['Content-Length'] = 0
 
       if m == 'post'
@@ -91,7 +91,7 @@ module Thoom
         http.key = OpenSSL::PKey::RSA.new f
       end
 
-      response = http.request request
+      http.request request
 
       #if response.code.to_i == 301
       #  newloc = response.header['location'][response.header['location'].index('rest/api/')+8..-1]
@@ -104,15 +104,14 @@ module Thoom
       #  response = submit(self.request)
       #end
 
-      response
-    rescue Timeout::Error => e
+    rescue Timeout::Error
       puts "\nRequest timed out".red
     end
 
     def pem
       return cert unless cert.nil?
 
-      cert = get_config_val(:cert, '')
+      get_config_val(:cert, '')
     end
 
     def uri
@@ -149,7 +148,7 @@ module Thoom
     def set_env_defaults(e)
       h = get_config_val(:headers, '')
       if h.respond_to? :each
-        puts "header responds to each"
+        puts 'header responds to each'
         h.each do |header|
           headers << header
         end

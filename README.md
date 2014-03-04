@@ -36,7 +36,7 @@ Flags
 YAML config
 -----------
 
-The client uses two different methods for find the YAML file `.restclient.yml`. It will
+The client uses two different methods to find the YAML file `.restclient.yml`. It will
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
