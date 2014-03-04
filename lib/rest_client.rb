@@ -11,7 +11,7 @@ require 'yaml'
 module Thoom
   class RestClient
 
-    VERSION = '0.6.1'
+    VERSION = '0.6.2'
 
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log, :env
@@ -62,14 +62,15 @@ module Thoom
       end
 
       if data
-        request['Content-Length'] = data.length
-
         if request['Content-Type'] == 'application/x-www-form-urlencoded'
           json = JSON.parse(data)
-          data = URI.encode_www_form(json)
+          body = URI.encode_www_form(json)
+        else
+          body = data
         end
 
-        request.body = data
+        request['Content-Length'] = data.length
+        request.body = body
       end
 
       request
