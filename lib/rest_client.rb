@@ -1,6 +1,3 @@
-#!/usr/bin/env ruby
-
-require 'colored'
 require 'json'
 require 'logger'
 require 'net/http'
@@ -11,7 +8,7 @@ require 'yaml'
 module Thoom
   class RestClient
 
-    VERSION = '0.7'
+    VERSION = '0.7.5'
     MIME_JSON = 'application/json'
     MIME_XML = 'application/xml'
 
@@ -30,7 +27,7 @@ module Thoom
 
       @headers = []
 
-      @standard_methods = %w(get head options post patch put)
+      @standard_methods = %w(delete get head options patch post put)
     end
 
     def request
@@ -86,7 +83,11 @@ module Thoom
 
       if uri.scheme == 'https'
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+        verify_mode = get_config_val(:tls_verify, 'VERIFY_PEER').upcase
+        raise 'tls_verify only accepts VERIFY_PEER or VERIFY_NONE' unless %w(VERIFY_PEER VERIFY_NONE).include? verify_mode
+
+        http.verify_mode = OpenSSL::SSL.const_get(verify_mode)
       end
 
       unless pem.nil? || pem.empty?
@@ -108,9 +109,6 @@ module Thoom
       #
       #  response = submit(self.request)
       #end
-
-    rescue Timeout::Error
-      puts "\nRequest timed out".red
     end
 
     def pem

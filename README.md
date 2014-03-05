@@ -14,6 +14,7 @@ Version
 -------
 
 0.7.0: Removed dependency on Nokogiri for XML parsing.
+0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
 
 Installation
 ------------
@@ -54,18 +55,21 @@ home directory.
 This makes it possible to use the restclient to connect to different APIs simply by changing
 folders.
 
-	KEY         DESC
-	----        -----
-	:user:      The username. If missing or blank, the client will not use Basic Authentication
-	:pass:      The password. If missing or blank, the client will not use Basic Authentication
+	KEY          DESC
+	----         -----
+	:user:       The username. If missing or blank, the client will not use Basic Authentication
+	:pass:       The password. If missing or blank, the client will not use Basic Authentication
 
-	:url:       The base REST url
-	:json:      The default JSON MIME type. If missing, the client uses "application/json"
-	:xml:       The default XML MIME type. If missing, the client uses "application/xml"
+	:url:        The base REST url
+	:json:       The default JSON MIME type. If missing, the client uses "application/json"
+	:xml:        The default XML MIME type. If missing, the client uses "application/xml"
 
-	:headers:   Array of default headers. Useful for custom headers or headers used in every request
-	:xmethods:  Array of nonstandard methods that are accepted by the API. To use these methods the
-				API must support X-HTTP-Method-Override.
+	:headers:    Array of default headers. Useful for custom headers or headers used in every request
+	:xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
+				 API must support X-HTTP-Method-Override.
+    :timeout:    The number of seconds to wait for a response before timing out. If missing, the client uses 300
+    :tls_verify: When using TLS, the verify mode to use. Valid values are: VERIFY_NONE, VERIFY_PEER.
+                 If missing, the client will use VERIFY_PEER
 
 Examples
 --------
