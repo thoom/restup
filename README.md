@@ -14,6 +14,7 @@ Version
 -------
 
 0.7.0: Removed dependency on Nokogiri for XML parsing.
+
 0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
 
 Installation
