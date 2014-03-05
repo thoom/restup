@@ -2,7 +2,8 @@
 
 require 'colored'
 require 'json'
-require 'nokogiri'
+require 'rexml/document'
+require 'rexml/formatters/pretty'
 require 'rest_client'
 
 def puts_header(h)
@@ -26,21 +27,12 @@ def section(h)
 end
 
 def xp(xml_text)
-  xsl = <<XSL
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
-  <xsl:strip-space elements="*"/>
-  <xsl:template match="/">
-    <xsl:copy-of select="."/>
-  </xsl:template>
-</xsl:stylesheet>
-XSL
+  out = ''
 
-  doc  = Nokogiri::XML(xml_text)
-  xslt = Nokogiri::XSLT(xsl)
-  out  = xslt.transform(doc)
-
-  out.to_xml
+  formatter = REXML::Formatters::Pretty.new
+  formatter.compact = true
+  formatter.write(REXML::Document.new(xml_text), out)
+  out
 end
 
 def title
@@ -80,8 +72,7 @@ TEXT
 ARGUMENT    DESC
 --------    -----
 --concise   Disables verbose output
-
--form       This will convert JSON-formatted input and encode it as x-www-form-urlencoded
+--form      Converts JSON-formatted input and encode it as x-www-form-urlencoded
 
 -j          Sets JSON Content-Type and Accept headers based on the :json: config MIME type
 -jc         Sets JSON Content-Type header
@@ -185,22 +176,22 @@ begin
       case arg
       when '--concise'
         verbose = false
-      when '-form'
+      when '--form'
         client.headers << 'Content-Type: application/x-www-form-urlencoded'
       when '-j'
-        client.headers << "Content-Type: #{ client.get_config_val(:json) }; charset=UTF-8"
-        client.headers << "Accept:  #{ client.get_config_val(:json) }"
+        client.headers << "Content-Type: #{ client.get_config_val(:json, Thoom::RestClient::MIME_JSON) }; charset=UTF-8"
+        client.headers << "Accept:  #{ client.get_config_val(:json, Thoom::RestClient::MIME_JSON) }"
       when '-jc'
-        client.headers << "Content-Type: #{ client.get_config_val(:json) }"
+        client.headers << "Content-Type: #{ client.get_config_val(:json, Thoom::RestClient::MIME_JSON) }"
       when '-ja'
-        client.headers << "Accept: #{ client.get_config_val(:json) }"
+        client.headers << "Accept: #{ client.get_config_val(:json, Thoom::RestClient::MIME_JSON) }"
       when '-x'
-        client.headers << "Content-Type: #{ client.get_config_val(:xml) }; charset=UTF-8"
-        client.headers << "Accept: #{ client.get_config_val(:xml) }"
+        client.headers << "Content-Type: #{ client.get_config_val(:xml, Thoom::RestClient::MIME_XML) }; charset=UTF-8"
+        client.headers << "Accept: #{ client.get_config_val(:xml, Thoom::RestClient::MIME_XML) }"
       when '-xc'
-        client.headers << "Content-Type: #{ client.get_config_val(:xml) }"
+        client.headers << "Content-Type: #{ client.get_config_val(:xml, Thoom::RestClient::MIME_XML) }"
       when '-xa'
-        client.headers << "Accept: #{ client.get_config_val(:xml) }"
+        client.headers << "Accept: #{ client.get_config_val(:xml, Thoom::RestClient::MIME_XML) }"
       else
         case param
         when '-h'

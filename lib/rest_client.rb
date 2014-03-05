@@ -11,7 +11,9 @@ require 'yaml'
 module Thoom
   class RestClient
 
-    VERSION = '0.6.2'
+    VERSION = '0.7'
+    MIME_JSON = 'application/json'
+    MIME_XML = 'application/xml'
 
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log, :env
@@ -32,6 +34,8 @@ module Thoom
     end
 
     def request
+      set_env_defaults(@env)
+
       m = method.downcase
       return 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
 
@@ -43,15 +47,16 @@ module Thoom
       request_uri = uri.request_uri
       request = Net::HTTP.const_get(m.capitalize).new request_uri
 
-      if user && pass
+      unless user.to_s.empty? || pass.to_s.empty?
         request.basic_auth(user, pass)
       end
 
       request['User-Agent'] = 'Thoom::RestClient/' + VERSION
-      request['Content-Length'] = 0
+      request.content_length = 0
 
       if m == 'post'
-        request['Content-Type'] = get_config_val(:json) #This just sets a default to JSON
+        #This just sets a default to JSON
+        request.content_type = get_config_val(:json, MIME_JSON) if request.content_type.nil? || request.content_type.empty?
       end
 
       if headers.respond_to? :each
@@ -61,15 +66,14 @@ module Thoom
         end
       end
 
-      if data
-        if request['Content-Type'] == 'application/x-www-form-urlencoded'
-          json = JSON.parse(data)
+      body = data
+      if body
+        if request.content_type == 'application/x-www-form-urlencoded'
+          json = JSON.parse(body)
           body = URI.encode_www_form(json)
-        else
-          body = data
         end
 
-        request['Content-Length'] = data.length
+        request.content_length = data.length
         request.body = body
       end
 
@@ -149,7 +153,6 @@ module Thoom
     def set_env_defaults(e)
       h = get_config_val(:headers, '')
       if h.respond_to? :each
-        puts 'header responds to each'
         h.each do |header|
           headers << header
         end

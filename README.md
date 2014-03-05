@@ -10,14 +10,25 @@ that can simplify using a REST-based API.
 If the API uses form encoded input, you need to define your post in JSON format. The client
 will encode it automatically.
 
+Version
+-------
+
+0.7.0: Removed dependency on Nokogiri for XML parsing.
+
+Installation
+------------
+
+For convenience, the executable and class are available as a gem on RubyGems.
+
+    gem install restclient
+
 Flags
 -----
 
 	ARGUMENT    DESC
 	--------    -----
 	--concise   Disables verbose output
-
-	-form       This will convert JSON-formatted input and encode it as x-www-form-urlencoded
+	--form      Converts JSON-formatted input and encode it as x-www-form-urlencoded
 
 	-j          Sets JSON Content-Type and Accept headers based on the :json: config MIME type
 	-jc         Sets JSON Content-Type header
