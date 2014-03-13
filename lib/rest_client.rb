@@ -8,7 +8,7 @@ require 'yaml'
 module Thoom
   class RestClient
 
-    VERSION = '0.7.5'
+    VERSION = '0.8.4'
     MIME_JSON = 'application/json'
     MIME_XML = 'application/xml'
 

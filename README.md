@@ -17,6 +17,8 @@ Version
 
 0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
 
+0.8.4: Added option to save response to a file by passing in the -o {file} arg. For binary files, response is never output in summary.
+
 Installation
 ------------
 
@@ -40,11 +42,12 @@ Flags
 	-xc         Sets XML Content-Type header
 	-xa         Sets XML Accept header
 
-	-h {header} Sets arbitrary header passed in format "HEADER: VALUE"
-	-d {data}   Sets data string as POST body
-	-f {file}   Imports file as POST body (assumes file based on current location)
-	-e {env}    Sets YAML environment for the request
 	-c {cert}   Imports cert for Client-Authentication endpoints
+	-d {data}   Sets data string as POST body
+	-e {env}    Sets YAML environment for the request
+	-f {file}   Imports file as POST body (assumes file based on current location)
+	-h {header} Sets arbitrary header passed in format "HEADER: VALUE"
+	-o {file}   Save output to file passed
 
 YAML config
 -----------
@@ -66,11 +69,11 @@ folders.
 	:xml:        The default XML MIME type. If missing, the client uses "application/xml"
 
 	:headers:    Array of default headers. Useful for custom headers or headers used in every request
-	:xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
-				 API must support X-HTTP-Method-Override.
     :timeout:    The number of seconds to wait for a response before timing out. If missing, the client uses 300
     :tls_verify: When using TLS, the verify mode to use. Valid values are: VERIFY_NONE, VERIFY_PEER.
                  If missing, the client will use VERIFY_PEER
+	:xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
+				 API must support X-HTTP-Method-Override.
 
 Examples
 --------
