@@ -18,6 +18,7 @@ Version
 0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
 
 0.8.4: Added option to save response to a file by passing in the -o {file} arg. For binary files, response is never output in summary.
+
 0.8.5: Added option to save response to the filename in the content-disposition if that header is passed.
 
 Installation
