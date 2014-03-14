@@ -3,25 +3,16 @@ require 'logger'
 require 'net/http'
 require 'openssl'
 require 'uri'
-require 'yaml'
+require 'config'
+require 'constants'
 
 module Thoom
   class RestClient
-
-    VERSION = '0.8.5'
-    MIME_JSON = 'application/json'
-    MIME_XML = 'application/xml'
-
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log, :env
 
-    def initialize
-      file_name = '.restclient.yml'
-      file = (File.exists? file_name) ? file_name : File.expand_path("~/#{ file_name }")
-
-      raise "Configuration file #{ file } not found" unless File.exists? file
-
-      @config = YAML.load_file file
+    def initialize(config)
+      @config = config
       @env = :default
       @log = Logger.new STDOUT
 
@@ -48,12 +39,12 @@ module Thoom
         request.basic_auth(user, pass)
       end
 
-      request['User-Agent'] = 'Thoom::RestClient/' + VERSION
+      request['User-Agent'] = 'Thoom::RestClient/' + Constants::VERSION
       request.content_length = 0
 
       if m == 'post'
         #This just sets a default to JSON
-        request.content_type = get_config_val(:json, MIME_JSON) if request.content_type.nil? || request.content_type.empty?
+        request.content_type = get_config_val(:json, Constants::MIME_JSON) if request.content_type.nil? || request.content_type.empty?
       end
 
       if headers.respond_to? :each
@@ -84,9 +75,7 @@ module Thoom
       if uri.scheme == 'https'
         http.use_ssl = true
 
-        verify_mode = get_config_val(:tls_verify, 'VERIFY_PEER').upcase
-        raise 'tls_verify only accepts VERIFY_PEER or VERIFY_NONE' unless %w(VERIFY_PEER VERIFY_NONE).include? verify_mode
-
+        verify_mode = get_config_val(:tls_verify, true) ? 'VERIFY_PEER' : 'VERIFY_NONE'
         http.verify_mode = OpenSSL::SSL.const_get(verify_mode)
       end
 
@@ -158,17 +147,7 @@ module Thoom
     end
 
     def get_config_val(key, val = nil)
-      if @config.has_key?(env) && @config[env].has_key?(key)
-        @config[env][key]
-      elsif @config.has_key?(:default) && @config[:default].has_key?(key)
-        @config[:default][key]
-      elsif @config.has_key? key
-        @config[key]
-      elsif !val.nil?
-        val
-      else
-        raise "Missing configuration entry for #{ key }"
-      end
+      @config.get(key, val)
     end
   end
 end
