@@ -363,7 +363,7 @@ begin
       val = config.get(:json, Thoom::Constants::MIME_JSON) if val == :json
       val = config.get(:xml, Thoom::Constants::MIME_XML) if val == :xml
     end
-      client.headers[key] = val
+      client.headers << "#{ key }: #{ val }"
   end
 
   request = client.request
