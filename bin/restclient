@@ -72,6 +72,8 @@ TEXT
 ARGUMENT    DESC
 --------    -----
 --concise   Disables verbose output
+--content-disposition
+            For responses with a filename in the Content Disposition, save the response using that filename
 --form      Converts JSON-formatted input and encode it as x-www-form-urlencoded
 
 -j          Sets JSON Content-Type and Accept headers based on the :json: config MIME type
@@ -161,6 +163,7 @@ begin
   verbose = true
   filename = nil
   output = nil
+  content_disposition = false
 
   if ARGV.length == 1
     client.method = 'GET'
@@ -181,6 +184,8 @@ begin
         verbose = false
       when '--form'
         client.headers << 'Content-Type: application/x-www-form-urlencoded'
+      when '--content-disposition'
+        content_disposition = true
       when '-j'
         client.headers << "Content-Type: #{ client.get_config_val(:json, Thoom::RestClient::MIME_JSON) }; charset=UTF-8"
         client.headers << "Accept:  #{ client.get_config_val(:json, Thoom::RestClient::MIME_JSON) }"
@@ -264,6 +269,11 @@ if response.respond_to? :each_header
   if verbose || response.code.to_i >= 400
     puts_header 'HEADERS'
     response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+  end
+
+  if content_disposition && output.nil? && response.to_hash.has_key?('content-disposition')
+    cd = response['content-disposition']
+    output = cd[cd.index('filename=') + 9..-1]
   end
 
   puts_header 'BODY'

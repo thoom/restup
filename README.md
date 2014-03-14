@@ -18,6 +18,7 @@ Version
 0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
 
 0.8.4: Added option to save response to a file by passing in the -o {file} arg. For binary files, response is never output in summary.
+0.8.5: Added option to save response to the filename in the content-disposition if that header is passed.
 
 Installation
 ------------
@@ -32,6 +33,8 @@ Flags
 	ARGUMENT    DESC
 	--------    -----
 	--concise   Disables verbose output
+	--content-disposition
+                For responses with a filename in the Content Disposition, save the response using that filename
 	--form      Converts JSON-formatted input and encode it as x-www-form-urlencoded
 
 	-j          Sets JSON Content-Type and Accept headers based on the :json: config MIME type
