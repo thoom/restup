@@ -2,26 +2,13 @@ Thoom::RestClient
 =================
 
 The RestClient works with APIs that use Basic Authentication. To use other forms of
-authentication, custom headers can be stored in the config file as described below.
+authentication, custom headers can either be passed with each request or stored in the config file as described below.
 
 It uses a `.restclient.yml` file to pull in defaults and provides several shortcut methods
 that can simplify using a REST-based API.
 
 If the API uses form encoded input, you need to define your post in JSON format. The client
 will encode it automatically.
-
-Version
--------
-
-0.7.0: Removed dependency on Nokogiri for XML parsing.
-
-0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
-
-0.8.4: Added option to save response to a file by passing in the -o {file} arg. For binary files, response is never output in summary.
-
-0.8.5: Added option to save response to the filename in the content-disposition if that header is passed.
-
-0.9.0: Significant internal refactoring to the client. Also changed console coloring dependency to the `Paint` gem instead of `Colored` gem.
 
 Installation
 ------------
@@ -37,16 +24,18 @@ Console
             --concise                    Disables verbose output
             --content-disposition        For responses with a filename in the Content Disposition, save the response using that filename
             --form                       Converts JSON-formatted input and encode it as x-www-form-urlencoded
+            --response-code-only         Only outputs the response code
+            --success-only               Only outputs whether or not the request was successful
         -c, --cert CERTFILE              Imports cert for Client-Authentication endpoints
         -d, --data DATA                  Sets data string as POST body
         -e, --env ENVIRONMENT            Sets YAML environment for the request
         -f, --file FILE                  Imports file as POST body (assumes file based on current location)
         -h, --header HEADER              Sets arbitrary header passed in format "HEADER: VALUE"
-        -j, --json [HEADER]              Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)
+        -j, --json [c|a]                 Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)
         -o, --output FILE                Save output to file passed
-        -x, --xml [HEADER]               Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)
+        -x, --xml [c|a]                  Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)
             --version                    Shows client version
-            --help [DETAILS]             Shows help message
+            --help [details]             Shows this message
 
 YAML config
 -----------
@@ -116,4 +105,19 @@ user and pass values in the config. It imports the order.json and passes it to t
 content type.
 
 It would return JSON values. If successful, the JSON would be parsed and highlighted in __:colors::success:__. If
-the an error was returned (an HTTP response code >= 400), the body would be in __colors::error:__.
+the an error was returned (an HTTP response code >= 400), the body would be in __:colors::error:__.
+
+Version History
+---------------
+
+0.9.3: Rewrote console output mechanism. Fixed a few bugs related to YAML configuration. Added `--response-code-only` and `--success-only` flags.
+
+0.9.0: Significant internal refactoring to the client. Also changed console coloring dependency to the `Paint` gem instead of `Colored` gem.
+
+0.8.5: Added option to save response to the filename in the content-disposition if that header is passed.
+
+0.8.4: Added option to save response to a file by passing in the -o {file} arg. For binary files, response is never output in summary.
+
+0.7.5: Added option to change the request timeout. Added option to disable TLS cert validation (Useful with self-signed certs).
+
+0.7.0: Removed dependency on Nokogiri for XML parsing.

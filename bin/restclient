@@ -11,59 +11,48 @@ require 'optparse'
 require 'rexml/document'
 require 'rexml/formatters/pretty'
 
-def puts_header(h)
-  puts header h
-end
+module Thoom
+  class OutputBuilder
+    attr_accessor :colors, :title_output
 
-def puts_section(h)
-  puts section h
-end
+    def initialize(colors)
+      @colors = colors
+    end
 
-def header(h)
-  len = h.gsub(/\e\[(\d+)m/, '').length
-  l   = '-' * len
-  "\n#{ h }\n#{ l }\n"
-end
+    def title(centered = true)
+      return if title_output
 
-def section(h)
-  len = h.gsub(/\e\[(\d+)m/, '').length
-  l   = '-' * (len + 4)
-  "\n#{ l }\n| #{ h } |\n#{ l }\n"
-end
+      client_copy = "Thoom::RestClient v#{ Thoom::Constants::VERSION }"
+      author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
+      link_copy   = '@link http://github.com/thoom/restclient'
 
-def xp(xml_text)
-  out = ''
+      if centered
+        max         = [client_copy.length, author_copy.length, link_copy.length].max + 2
+        client_copy = client_copy.center(max, ' ')
+        author_copy = author_copy.center(max, ' ')
+        link_copy   = link_copy.center(max, ' ')
+      end
 
-  formatter         = REXML::Formatters::Pretty.new
-  formatter.compact = true
-  formatter.write(REXML::Document.new(xml_text), out)
-  out
-end
+      @title_output = true
+      puts "\n",
+           Paint[client_copy, colors[:title_color], colors[:title_bgcolor]],
+           Paint[author_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]],
+           Paint[link_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]]
+    end
 
-def title(colors, centered = true)
-  client_copy = "Thoom::RestClient v#{ Thoom::Constants::VERSION }"
-  author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
-  link_copy   = '@link http://github.com/thoom/restclient'
+    def header(h)
+      len = Paint.unpaint(h).length
+      l   = '-' * len
+      puts "\n#{ h }\n#{ l }\n"
+    end
 
-  if centered
-    max         = [client_copy.length, author_copy.length, link_copy.length].max + 2
-    client_copy = client_copy.center(max, ' ')
-    author_copy = author_copy.center(max, ' ')
-    link_copy   = link_copy.center(max, ' ')
-  end
+    def help(config_file, opts)
+      title
+      section 'How to use the RestClient'
 
-  puts "\n",
-       Paint[client_copy, colors[:title_color], colors[:title_bgcolor]],
-       Paint[author_copy, colors[:author_color], colors[:author_bgcolor]],
-       Paint[link_copy, colors[:author_color], colors[:author_bgcolor]]
-end
-
-def help(config_file, opts, colors)
-  puts_section 'How to use the RestClient'
-
-  puts <<TEXT
+      puts <<TEXT
 The RestClient works with APIs that use Basic Authentication. To use other forms of
-authentication, custom headers can be stored in the config file as described below.
+authentication, custom headers can either be passed with each request or stored in the config file as described below.
 
 It uses a #{ Paint[config_file, colors[:help_filename]] } file to pull in defaults and provides several shortcut methods
 that can simplify using a REST-based API.
@@ -72,40 +61,43 @@ If the API uses form encoded input, you need to define your post in JSON format.
 will encode it automatically.
 TEXT
 
-  puts_section 'Console'
-  puts opts
+      section 'Console'
+      puts opts
 
-  puts_section 'YAML config'
-  puts <<TEXT
+      section 'YAML config'
+      puts <<TEXT
 The client uses two different methods to find the YAML file #{ Paint[config_file, colors[:help_filename]] }. It will
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
-This makes it possible to use the restclient to connect to different APIs simply by changing
-folders.
+This makes it possible to use the restclient to connect to different APIs simply by changing folders.
 
 KEY          DESC
 ----         -----
-:user:       The username. If missing or blank, the client will not use Basic Authentication
-:pass:       The password. If missing or blank, the client will not use Basic Authentication
+:user:       The username. Default: blank, so disable Basic Authentication
+:pass:       The password. Default: blank, so disable Basic Authentication
 
 :url:        The base REST url
-:json:       The default JSON MIME type. If missing, the client uses "application/json"
-:xml:        The default XML MIME type. If missing, the client uses "application/xml"
+:json:       The default JSON MIME type. Default: "application/json"
+:xml:        The default XML MIME type.  Default: "application/xml"
 
+:colors:     Hash of default color values
+  :success:  Color to highlight successful messages.  Default: :green
+  :warning:  Color to highlight warning messages.     Default: :yellow
+  :info:     Color to highlight info messages.        Default: :yellow
+  :error:    Color to highlight error messages.       Default :red
 :headers:    Array of default headers. Useful for custom headers or headers used in every request
 :timeout:    The number of seconds to wait for a response before timing out. If missing, the client uses 300
-:tls_verify: When using TLS, the mode to use. Valid values are: VERIFY_NONE, VERIFY_PEER.
-             If missing, the client will use VERIFY_PEER
+:tls_verify: When using TLS, the verify mode to use.  Values: true, false.  Default: true
 :xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
              API must support X-HTTP-Method-Override.
 TEXT
 
-  puts_section 'Examples'
+      section 'Examples'
 
-  puts_header 'GET Request'
+      header 'GET Request'
 
-  puts <<TEXT
+      puts <<TEXT
 The YAML config:
 :url: http://example.com/api
 :user: myname
@@ -120,9 +112,9 @@ It would return JSON values. If successful, the JSON would be parsed and highlig
 the an error was returned (an HTTP response code >= 400), the body would be in #{ Paint[colors[:error].to_s.upcase, colors[:error]] }.
 TEXT
 
-  puts_header 'POST Request'
+      header 'POST Request'
 
-  puts <<TEXT
+      puts <<TEXT
 The YAML config:
 :url: http://example.com/api
 :user: myname
@@ -137,115 +129,148 @@ content type.
 It would return JSON values. If successful, the JSON would be parsed and highlighted in #{ Paint[colors[:success].to_s.upcase, colors[:success]] }. If
 the an error was returned (an HTTP response code >= 400), the body would be in #{ Paint[colors[:error].to_s.upcase, colors[:error]] }.
 TEXT
-end
-
-def exit_title(colors, centered = true)
-  puts title(colors, centered)
-  exit
-end
-
-def exit_with_title(content, colors, centered = true)
-  puts title(colors, centered)
-  puts content
-  exit
-end
-
-def exit_help(config_file, o, colors)
-  puts title(colors)
-  puts help(config_file, o, colors)
-  exit
-end
-
-def puts_request(client, request, filename, verbose, colors)
-  path  = client.uri.path.sub(client.endpoint, '')
-  query = ''
-  if client.uri.query
-    query += '?' + client.uri.query.sub(client.endpoint, '')
-  end
-
-  puts_section "REQUEST: #{ Paint[client.method.upcase, :cyan] } " + Paint["#{ client.uri.host }:#{ client.uri.port.to_s }#{ path }", :blue] + Paint[query + client.endpoint, :yellow]
-
-  if verbose
-    unless request.respond_to? 'each_header'
-      puts_header 'MALFORMED REQUEST'
-      puts Paint[request, :red], "\n"
       exit
     end
 
-    puts_header 'HEADERS'
-    request.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+    def section(h)
+      len = Paint.unpaint(h).length
+      l   = '-' * (len + 4)
+      puts "\n#{ l }\n| #{ h } |\n#{ l }\n"
+    end
 
-    if client.data
-      puts_header 'BODY'
+    def xp(xml_text)
+      out = ''
 
-      if client.data.ascii_only?
-        puts client.data
+      formatter         = REXML::Formatters::Pretty.new
+      formatter.compact = true
+      formatter.write(REXML::Document.new(xml_text), out)
+      out
+    end
+
+    def request(client, request, filename, verbose)
+      path  = client.uri.path.sub(client.endpoint, '')
+      query = ''
+      if client.uri.query
+        query += '?' + client.uri.query.sub(client.endpoint, '')
+      end
+
+      port_color      = client.uri.port == 80 ? :request_port_http : :request_port_tls
+      request_section = "REQUEST: #{ Paint[client.method.upcase, colors[:request_method]] } "
+      request_section += Paint["#{ client.uri.host }:", colors[:request_path]]
+      request_section += Paint[client.uri.port.to_s, colors[port_color]]
+      request_section += Paint[path, colors[:request_path]]
+      request_section += Paint[query + client.endpoint, colors[:request_endpoint]]
+
+      unless request.respond_to? 'each_header'
+        header 'MALFORMED REQUEST'
+        quit Paint[request, colors[:error]]
+      end
+
+      if verbose
+        section request_section if verbose
+
+        header 'HEADERS'
+        request.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+
+        if client.data
+          header 'BODY'
+
+          if client.data.ascii_only?
+            puts client.data
+          else
+            puts "File: '#{ filename }' posted, but contains non-ASCII data, so it's not echoed here."
+          end
+        end
       else
-        puts "File: '#{ filename }' posted, but contains non-ASCII data, so it's not echoed here."
+        puts "\n#{ request_section }"
       end
     end
-  end
-end
 
-def puts_response(response, colors, verbose)
-  response_color = response.code.to_i < 400 ? colors[:success] : colors[:error]
-  puts_section "RESPONSE: #{ Paint[response.code, response_color] }"
+    def response(response, verbose)
+      response_color   = response.code.to_i < 400 ? colors[:success] : colors[:error]
+      response_section = "RESPONSE: #{ Paint[response.code, response_color] }"
 
-  if verbose || response_color == colors[:error]
-    puts_header 'HEADERS'
-    response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
-  end
+      if verbose || response_color == colors[:error]
+        section response_section
+        header 'HEADERS'
+        response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+      else
+        puts response_section
+      end
 
-  puts_header 'BODY'
-  if !response.body || response.body.empty?
-    puts Paint['NONE', colors[:info]]
-  elsif !response.body.ascii_only?
-    puts Paint["RESPONSE contains non-ASCII data, so it's not echoed here.", colors[:info]]
-  else
-    if response['content-type'].include? 'json'
-      body = JSON.pretty_unparse(JSON.parse response.body)
-    elsif response['content-type'].include? 'xml'
-      body = xp(response.body)
-    else
-      body = response.body
+      header 'BODY' if verbose
+      puts 'BODY:' unless verbose
+
+      if !response.body || response.body.empty?
+        puts Paint['NONE', colors[:info]]
+      elsif !response.body.ascii_only?
+        puts Paint["RESPONSE contains non-ASCII data, so it's not echoed here.", colors[:info]]
+      else
+        if response['content-type'].include? 'json'
+          body = JSON.pretty_unparse(JSON.parse response.body)
+        elsif response['content-type'].include? 'xml'
+          body = xp(response.body)
+        else
+          body = response.body
+        end
+        puts Paint[body, response_color]
+      end
     end
-    puts Paint[body, response_color]
-  end
-end
 
-def save_response(response, content_disposition, output, colors)
-  if content_disposition && output.nil? && response.to_hash.has_key?('content-disposition')
-    cd     = response['content-disposition']
-    output = cd[cd.index('filename=') + 9..-1]
-  end
+    def save_response(response, content_disposition, output)
+      if content_disposition && output.nil? && response.to_hash.has_key?('content-disposition')
+        cd     = response['content-disposition']
+        output = cd[cd.index('filename=') + 9..-1]
+      end
 
-  unless output.nil?
-    file = File.expand_path(output)
-    if File.exists?(File.dirname file)
-      File.open(file, 'w') { |f| f.write response.body }
-      puts Paint["Response written to file: #{ file }", colors[:info]]
-    else
-      puts Paint["Could not write to file #{ file }", colors[:error]]
+      unless output.nil?
+        file = File.expand_path(output)
+        if File.exists?(File.dirname file)
+          File.open(file, 'w') { |f| f.write response.body }
+          puts Paint["Response written to file: #{ file }", colors[:info]]
+        else
+          puts Paint["Could not write to file #{ file }", colors[:error]]
+        end
+      end
+    end
+
+    def quit_with_title(content, centered = true)
+      title(centered)
+      puts "\n#{ content }"
+      exit
+    end
+
+    def quit(content)
+      title
+      puts "\n#{ content }"
+      exit
     end
   end
-
 end
 
 begin
   #set some default colors
-  default_colors = {author_color: :default, author_bgcolor: :default, title_color: :default, title_bgcolor: :default}
-  exit_with_title('Missing required options. Use "--help" OR "--help details" for more information', default_colors, false) if ARGV.length == 0
+  default_colors = {subtitle_color: :default, subtitle_bgcolor: :default, title_color: :default, title_bgcolor: :default}
+
+  output_default = Thoom::OutputBuilder.new default_colors
+  output_default.quit_with_title('Missing required options. Use "--help" OR "--help details" for more information', false) if ARGV.length == 0
 
   colors                 = {}
   colors[:title_color]   = '003366'
   colors[:title_bgcolor] = :white
 
-  colors[:author_color]   = :white
-  colors[:author_bgcolor] = '003366'
+  colors[:subtitle_color]   = :white
+  colors[:subtitle_bgcolor] = '003366'
 
   colors[:help_filename]       = :yellow
   colors[:help_sample_request] = :magenta
   colors[:help_sample_url]     = :blue
+
+  colors[:request_method]    = :cyan
+  colors[:request_path]      = '336699'
+  colors[:request_port_http] = '336699'
+  colors[:request_port_tls]  = '339966'
+  colors[:request_endpoint]  = :yellow
 
   colors[:success] = :green
   colors[:warning] = :yellow
@@ -254,14 +279,19 @@ begin
 
   config_file = '.restclient.yml'
   config      = Thoom::Config.new config_file, :default
+  output_builder = Thoom::OutputBuilder.new colors
 
-  new_colors = config.get(:colors, {})
+  new_colors = config.get(:colors, {yolo: :cyan})
+
+  output_builder.quit(Paint['Empty :color: hash found in YAML configuration', colors[:error]]) if new_colors.nil? || new_colors.empty?
   colors.merge!(new_colors)
 
   verbose             = true
   filename            = nil
   output              = nil
   content_disposition = false
+  response_code_only  = false
+  success_only        = false
 
   headers = {}
   opts    = {}
@@ -278,6 +308,14 @@ begin
 
     o.on('--form', 'Converts JSON-formatted input and encode it as x-www-form-urlencoded') do
       headers['content-type'] = 'application/x-www-form-urlencoded'
+    end
+
+    o.on('--response-code-only', 'Only outputs the response code') do
+      response_code_only = true
+    end
+
+    o.on('--success-only', 'Only outputs whether or not the request was successful') do
+      success_only = true
     end
 
     o.on('-c', '--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
@@ -300,11 +338,11 @@ begin
     end
 
     o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
-      key, val = header.split(':')
+      key, val           = header.split(':')
       headers[key.strip] = val.strip
     end
 
-    o.on('-j', '--json [HEADER]', 'Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)') do |json|
+    o.on('-j', '--json [c|a]', 'Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)') do |json|
       case json
       when 'c', 'content-type'
         headers['content-type'] = :json
@@ -320,7 +358,7 @@ begin
       output = file
     end
 
-    o.on('-x', '--xml [HEADER]', 'Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)') do |xml|
+    o.on('-x', '--xml [c|a]', 'Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)') do |xml|
       case xml
       when 'c', 'content-type'
         headers['content-type'] = :xml
@@ -333,56 +371,59 @@ begin
     end
 
     o.on_tail('--version', 'Shows client version') do
-      exit_title(default_colors, false)
+      output_default.quit_with_title('', false)
     end
 
-    o.on_tail('-h', '--help [DETAILS]', 'Shows this message') do |details|
+    o.on_tail('--help [details]', 'Shows this message') do |details|
       if details == 'details'
-        exit_help(config_file, o, colors)
+        output_builder.help(config_file, o)
       else
-        exit_with_title(o, colors)
+        output_builder.quit(o)
       end
     end
   end
 
   parser.parse! ARGV
-
-  if ARGV.length < 2
-    exit_with_title(Paint['Missing required METHOD and ENDPOINT', colors[:error]], colors)
-  end
+  output_builder.quit(Paint['Missing required METHOD and/or ENDPOINT', colors[:error]]) if ARGV.length < 2
 
   client          = Thoom::RestClient.new config
   client.method   = ARGV.shift
   client.endpoint = ARGV.shift
 
-  client.cert = opts[:cert] if opts.has_key? :cert
-  client.data = opts[:data] if opts.has_key? :data
+  client.cert     = opts[:cert] if opts.has_key? :cert
+  client.data     = opts[:data] if opts.has_key? :data
 
   headers.each do |key, val|
     if %w(content-type accept).include? key
       val = config.get(:json, Thoom::Constants::MIME_JSON) if val == :json
       val = config.get(:xml, Thoom::Constants::MIME_XML) if val == :xml
     end
-      client.headers << "#{ key }: #{ val }"
+    client.headers << "#{ key }: #{ val }"
   end
 
   request = client.request
 
-  puts title(colors)
-  puts_request(client, request, filename, verbose, colors)
-
-  response = client.submit request
-  unless response.respond_to? :each_header
-    puts response
-    exit
+  unless response_code_only || success_only
+    #output_builder.title
+    output_builder.request(client, request, filename, verbose)
   end
 
-  puts_response(response, colors, verbose)
-  save_response(response, content_disposition, output, colors)
+  response = client.submit request
+  output_builder.quit response unless response.respond_to? :each_header
+
+  if response_code_only
+    puts response.code
+  elsif success_only
+    puts response.code.to_i < 400
+  else
+    output_builder.response(response, verbose)
+    output_builder.save_response(response, content_disposition, output)
+    puts "\n"
+  end
 rescue TimeoutError
-  puts "\n#{ Paint['Request timed out', colors[:error]] }"
+  output_builder.quit Paint['Request timed out', colors[:error]]
 rescue SystemExit
   puts "\n"
 rescue Exception => e
-  puts "\n#{ Paint[e.message, colors[:error]] }"
+  output_builder.quit "#{ Paint[e.message.capitalize, colors[:error]] }\n\n"
 end

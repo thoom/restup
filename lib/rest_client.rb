@@ -7,25 +7,31 @@ require 'config'
 require 'constants'
 
 module Thoom
+  class RestClientError < RuntimeError
+    attr_reader :message
+
+    def initialize(message)
+      @message = message
+    end
+  end
+
   class RestClient
     attr_accessor :method, :endpoint, :headers, :data, :cert
-    attr_reader :log, :env
+    attr_reader :log
 
     def initialize(config)
       @config = config
-      @env = :default
-      @log = Logger.new STDOUT
+      @log    = Logger.new STDOUT
 
-      @headers = []
-
+      @headers          = []
       @standard_methods = %w(delete get head options patch post put)
     end
 
     def request
-      set_env_defaults(@env)
-
       m = method.downcase
-      return 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
+
+      raise RestClientError.new '":xmethods:" should be an array' unless xmethods.respond_to? 'include?'
+      raise RestClientError.new 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
 
       if xmethods.include? m
         headers << "X-HTTP-Method-Override: #{ m.upcase }"
@@ -33,23 +39,23 @@ module Thoom
       end
 
       request_uri = uri.request_uri
-      request = Net::HTTP.const_get(m.capitalize).new request_uri
+      request     = Net::HTTP.const_get(m.capitalize).new request_uri
 
       unless user.to_s.empty? || pass.to_s.empty?
         request.basic_auth(user, pass)
       end
 
-      request['User-Agent'] = 'Thoom::RestClient/' + Constants::VERSION
+      request['User-Agent']  = 'Thoom::RestClient/' + Constants::VERSION
       request.content_length = 0
 
       if m == 'post'
         #This just sets a default to JSON
-        request.content_type = get_config_val(:json, Constants::MIME_JSON) if request.content_type.nil? || request.content_type.empty?
+        request.content_type = @config.get(:json, Constants::MIME_JSON) if request.content_type.nil? || request.content_type.empty?
       end
 
       if headers.respond_to? :each
         headers.each do |header|
-          key, value = header.split ':'
+          key, value         = header.split ':'
           request[key.strip] = value.strip
         end
       end
@@ -62,20 +68,20 @@ module Thoom
         end
 
         request.content_length = data.length
-        request.body = body
+        request.body           = body
       end
 
       request
     end
 
     def submit(request)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.read_timeout = get_config_val(:timeout, 300)
+      http              = Net::HTTP.new(uri.host, uri.port)
+      http.read_timeout = @config.get(:timeout, 300)
 
       if uri.scheme == 'https'
         http.use_ssl = true
 
-        verify_mode = get_config_val(:tls_verify, true) ? 'VERIFY_PEER' : 'VERIFY_NONE'
+        verify_mode      = @config.get(:tls_verify, true) ? 'VERIFY_PEER' : 'VERIFY_NONE'
         http.verify_mode = OpenSSL::SSL.const_get(verify_mode)
       end
 
@@ -83,11 +89,12 @@ module Thoom
         f = File.read pem
 
         http.cert = OpenSSL::X509::Certificate.new f
-        http.key = OpenSSL::PKey::RSA.new f
+        http.key  = OpenSSL::PKey::RSA.new f
       end
 
       http.request request
 
+      #TODO: This was originally hardcoded... probably need to figure out a resolution some day
       #if response.code.to_i == 301
       #  newloc = response.header['location'][response.header['location'].index('rest/api/')+8..-1]
       #
@@ -102,8 +109,7 @@ module Thoom
 
     def pem
       return cert unless cert.nil?
-
-      get_config_val(:cert, '')
+      @config.get(:cert, '')
     end
 
     def uri
@@ -113,7 +119,7 @@ module Thoom
     end
 
     def base
-      get_config_val(:url)
+      @config.get(:url)
     end
 
     def url
@@ -121,33 +127,15 @@ module Thoom
     end
 
     def xmethods
-      get_config_val(:xmethods, [])
+      @config.get(:xmethods, [])
     end
 
     def user
-      get_config_val(:user, '')
+      @config.get(:user, '')
     end
 
     def pass
-      get_config_val(:pass, '')
-    end
-
-    def env=(val)
-      @env = val.to_sym
-      set_env_defaults(@env)
-    end
-
-    def set_env_defaults(e)
-      h = get_config_val(:headers, '')
-      if h.respond_to? :each
-        h.each do |header|
-          headers << header
-        end
-      end
-    end
-
-    def get_config_val(key, val = nil)
-      @config.get(key, val)
+      @config.get(:pass, '')
     end
   end
 end
