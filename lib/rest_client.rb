@@ -23,19 +23,19 @@ module Thoom
       @config = config
       @log    = Logger.new STDOUT
 
-      @headers          = []
+      @headers          = {}
       @standard_methods = %w(delete get head options patch post put)
     end
 
     def request
       m = method.downcase
 
-      raise RestClientError.new '":xmethods:" should be an array' unless xmethods.respond_to? 'include?'
+      raise RestClientError.new '":xmethods:" should be an array' unless xmethods.respond_to? :include?
       raise RestClientError.new 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
 
       if xmethods.include? m
-        headers << "X-HTTP-Method-Override: #{ m.upcase }"
-        m = 'post'
+        headers['x-http-method-override'] = m.upcase
+        m                                 = 'post'
       end
 
       request_uri = uri.request_uri
@@ -48,17 +48,16 @@ module Thoom
       request['User-Agent']  = 'Thoom::RestClient/' + Constants::VERSION
       request.content_length = 0
 
-      if m == 'post'
-        #This just sets a default to JSON
-        request.content_type = @config.get(:json, Constants::MIME_JSON) if request.content_type.nil? || request.content_type.empty?
-      end
+      #This just sets a default to JSON
+      request.content_type   = @config.get(:json, Constants::MIME_JSON) if m == 'post' && (request.content_type.nil? || request.content_type.empty?)
 
-      if headers.respond_to? :each
-        headers.each do |header|
-          key, value         = header.split ':'
-          request[key.strip] = value.strip
-        end
-      end
+      headers.each { |key, val| request[key.strip] = val.strip } if headers.respond_to? :each
+      #if headers.respond_to? :each
+      #  headers.each do |header|
+      #    key, value         = header.split ':'
+      #    request[key.strip] = value.strip
+      #  end
+      #end
 
       body = data
       if body
