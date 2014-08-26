@@ -49,7 +49,7 @@ module Thoom
       request.content_length = 0
 
       #This just sets a default to JSON
-      request.content_type   = @config.get(:json, Constants::MIME_JSON) if m == 'post' && (request.content_type.nil? || request.content_type.empty?)
+      request.content_type   = @config.get(:json, Constants::MIME_JSON) if %w(post put patch).include?(m) && (request.content_type.nil? || request.content_type.empty?)
 
       headers.each { |key, val| request[key.strip] = val.strip } if headers.respond_to? :each
       #if headers.respond_to? :each

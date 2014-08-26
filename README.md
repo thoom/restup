@@ -24,6 +24,7 @@ Console
             --concise                    Disables verbose output
             --content-disposition        For responses with a filename in the Content Disposition, save the response using that filename
             --form                       Converts JSON-formatted input and encode it as x-www-form-urlencoded
+            --response-only              Only outputs the response body
             --response-code-only         Only outputs the response code
             --success-only               Only outputs whether or not the request was successful
         -c, --cert CERTFILE              Imports cert for Client-Authentication endpoints
@@ -112,6 +113,8 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 
 Version History
 ---------------
+
+0.10.1: Fixes Github issues #1 and #4. `PUT`, `PATCH`, and `POST` all set a default `JSON` content type. Added `--response-only` flag.
 
 0.10.0: Fixed a bug missed where headers in the YAML file were not parsed. Changed the YAML :headers: to use a hash instead of array.
 

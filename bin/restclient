@@ -293,6 +293,7 @@ begin
   filename            = nil
   output              = nil
   content_disposition = false
+  response_only       = false
   response_code_only  = false
   success_only        = false
 
@@ -313,6 +314,9 @@ begin
       headers['content-type'] = 'application/x-www-form-urlencoded'
     end
 
+    o.on('--response-only', 'Only outputs the response body') do
+      response_only = true
+    end
     o.on('--response-code-only', 'Only outputs the response code') do
       response_code_only = true
     end
@@ -408,7 +412,7 @@ begin
   end
 
   request = client.request
-  output_builder.request(client, request, filename, verbose) unless response_code_only || success_only
+  output_builder.request(client, request, filename, verbose) unless response_code_only || success_only || response_only
 
   response = client.submit request
   output_builder.quit response unless response.respond_to? :each_header
@@ -417,6 +421,8 @@ begin
     puts response.code
   elsif success_only
     puts response.code.to_i < 400
+  elsif response_only
+    puts response.body
   else
     output_builder.response(response, verbose)
     output_builder.save_response(response, content_disposition, output)
