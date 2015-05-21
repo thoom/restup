@@ -48,26 +48,30 @@ home directory.
 This makes it possible to use the restclient to connect to different APIs simply by changing
 folders.
 
-	KEY          DESC
-	----         -----
-	:user:       The username. Default: blank, so disable Basic Authentication
-	:pass:       The password. Default: blank, so disable Basic Authentication
+    KEY          DESC
+    ----         -----
+    user:       The username. Default: blank, so disable Basic Authentication
+    pass:       The password. Default: blank, so disable Basic Authentication
 
-	:url:        The base REST url
-	:json:       The default JSON MIME type. Default: "application/json"
-	:xml:        The default XML MIME type.  Default: "application/xml"
+    url:        The base REST url
+    json:       The default JSON MIME type. Default: "application/json"
+    xml:        The default XML MIME type.  Default: "application/xml"
+  
+    colors:     Hash of default color values
+      success:  Color to highlight successful messages.  Default: :green
+      warning:  Color to highlight warning messages.     Default: :yellow
+      info:     Color to highlight info messages.        Default: :yellow
+      error:    Color to highlight error messages.       Default :red
 
-    :colors:     Hash of default color values
-      :success:  Color to highlight successful messages.  Default: :green
-      :warning:  Color to highlight warning messages.     Default: :yellow
-      :info:     Color to highlight info messages.        Default: :yellow
-      :error:    Color to highlight error messages.       Default :red
-	:headers:    Hash of default headers. Useful for custom headers or headers used in every request.
-	             The keys for this hash are strings, not symbols like the other keys
-    :timeout:    The number of seconds to wait for a response before timing out. Default: 300
-    :tls_verify: When using TLS, the verify mode to use.  Values: true, false.  Default: true
-	:xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
-				 API must support X-HTTP-Method-Override.
+    headers:    Hash of default headers. Useful for custom headers or headers used in every request.
+                The keys for this hash are strings, not symbols like the other keys
+    
+    timeout:    The number of seconds to wait for a response before timing out. Default: 300
+    
+    tls_verify: When using TLS, the verify mode to use.  Values: true, false.  Default: true
+    
+    xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
+                API must support X-HTTP-Method-Override.
 
 Examples
 --------
@@ -76,13 +80,13 @@ Examples
 
 The YAML config:
 
-	:url: http://example.com/api
-	:user: myname
-	:pass: P@ssWord
+    url: http://example.com/api
+    user: myname
+    pass: P@ssWord
 
 The command line:
 
-	restclient get /hello/world -j
+    restclient get /hello/world -j
 
 Submits a GET request to `http://example/api/hello/world` with Basic Auth header using the
 user and pass values in the config.
@@ -94,15 +98,15 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 
 The YAML config:
 
-	:url: http://example.com/api
-	:user: myname
-	:pass: P@ssWord
-	:headers:
-	    X-Custom-Id: abc12345
+    url: http://example.com/api
+    user: myname
+    pass: P@ssWord
+	  headers:
+      X-Custom-Id: abc12345
 
 The command line:
 
-	restclient post /hello/world -j -f salutation.json
+    restclient post /hello/world -j -f salutation.json
 
 Submits a POST request to `http://example/api/hello/world` with Basic Auth header using the
 user and pass values in the config. It imports the salutation.json and passes it to the API as application/json
@@ -113,6 +117,8 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 
 Version History
 ---------------
+0.11.0: Fixes Github issues #2, #5, #6, #7, and #8. If a configuration file is not found,
+there is now a simple wizard that will ask a few questions and then generate the config file.
 
 0.10.1: Fixes Github issues #1 and #4. `PUT`, `PATCH`, and `POST` all set a default `JSON` content type. Added `--response-only` flag.
 
