@@ -117,7 +117,7 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 
 Version History
 ---------------
-0.11.0: Fixes Github issues #2, #5, #6, #7, and #8. If a configuration file is not found,
+0.11.1: Fixes Github issues #2, #5, #6, #7, and #8. If a configuration file is not found,
 there is now a simple wizard that will ask a few questions and then generate the config file.
 
 0.10.1: Fixes Github issues #1 and #4. `PUT`, `PATCH`, and `POST` all set a default `JSON` content type. Added `--response-only` flag.

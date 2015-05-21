@@ -51,13 +51,7 @@ module Thoom
       #This just sets a default to JSON
       request.content_type   = @config.get(:json, Constants::MIME_JSON) if %w(post put patch).include?(m) && (request.content_type.nil? || request.content_type.empty?)
 
-      headers.each { |key, val| request[key.strip] = val.strip } if headers.respond_to? :each
-      #if headers.respond_to? :each
-      #  headers.each do |header|
-      #    key, value         = header.split ':'
-      #    request[key.strip] = value.strip
-      #  end
-      #end
+      headers.each { |key, val| request[key.to_s.strip] = val.strip } if headers.respond_to? :each
 
       body = data
       if body
