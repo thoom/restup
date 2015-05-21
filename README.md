@@ -101,7 +101,7 @@ The YAML config:
     url: http://example.com/api
     user: myname
     pass: P@ssWord
-	  headers:
+    headers:
       X-Custom-Id: abc12345
 
 The command line:
