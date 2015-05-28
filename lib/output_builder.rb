@@ -208,7 +208,7 @@ TEXT
         puts Paint["RESPONSE contains non-ASCII data, so it's not echoed here.", colors[:info]]
       else
         if response['content-type'].nil?
-          body - response.body
+          body = response.body
         elsif response['content-type'].include? 'json'
           body = JSON.pretty_unparse(JSON.parse response.body)
         elsif response['content-type'].include? 'xml'
