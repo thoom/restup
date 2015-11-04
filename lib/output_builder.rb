@@ -7,7 +7,7 @@ require 'rexml/formatters/pretty'
 
 module Thoom
   class OutputBuilder
-    attr_accessor :colors, :title_output
+    attr_accessor :colors, :title_output, :response_time
 
     def initialize(colors)
       @colors = colors
@@ -142,7 +142,7 @@ TEXT
     def xp(xml_text)
       out = ''
 
-      formatter         = REXML::Formatters::Pretty.new
+      formatter = REXML::Formatters::Pretty.new
       formatter.compact = true
       formatter.write(REXML::Document.new(xml_text), out)
       out
@@ -189,10 +189,10 @@ TEXT
 
     def response(response, verbose)
       response_color   = response.code.to_i < 400 ? colors[:success] : colors[:error]
-      response_section = "RESPONSE: #{ Paint[response.code, response_color] }"
+      response_section = "RESPONSE: #{ Paint[response.code, response_color] } (#{ response_time } sec)"
 
       if verbose || response_color == colors[:error]
-        section response_section
+        section response_section        
         header 'HEADERS'
         response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
       else

@@ -172,8 +172,11 @@ begin
   request = client.request
   output_builder.request(client, request, filename, verbose) unless response_code_only || success_only || response_only
 
+  before = Time.now
   response = client.submit request
-  output_builder.quit response unless response.respond_to? :each_header
+  output_builder.response_time = (Time.now - before).round(2)
+  
+  output_builder.quit(response) unless response.respond_to? :each_header
 
   if response_code_only
     puts response.code

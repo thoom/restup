@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name         = 'restclient'
-  s.version      = '0.11.2'
-  s.date         = '2015-05-20'
+  s.version      = '0.11.3'
+  s.date         = '2015-11-03'
   s.summary      = 'Thoom RestClient: A simple REST consumer'
   s.description  = 'A class and executable for interacting with RESTful web services'
   s.authors      = ['Z.d. Peacock']
