@@ -118,6 +118,7 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 Version History
 ---------------
 0.11.3: Adds a simple response time to the output.
+
 0.11.2: Fixes Github issue #10.
 
 0.11.1: Fixes Github issues #2, #5, #6, #7, and #8. If a configuration file is not found,
