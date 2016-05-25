@@ -1,5 +1,3 @@
-require 'yaml'
-
 module Thoom
   class ConfigError < RuntimeError
     attr_reader :message
@@ -12,19 +10,12 @@ module Thoom
   class ConfigFileError < ConfigError 
   
   end
-
-  class Config
-    def initialize(filename, env = :default)
-      file = (File.exists? filename) ? filename : File.expand_path("~/#{ filename }")
-      raise ConfigFileError.new "Configuration file #{ filename } not found" unless File.exists? file
-
-      @config = YAML.load_file file      
-      raise ConfigFileError.new "Configuration file #{ file } is empty!" unless @config
-
-      @env = env
-      @config.deep_symbolize_keys!      
+  
+  module Config
+    def set_config(config)
+      @config = config.deep_symbolize_keys
     end
-
+    
     def get(key, val = nil)
       key = key.to_sym
       if @config.has_key?(@env) && @config[@env].has_key?(key)
@@ -43,6 +34,33 @@ module Thoom
     def env=(val)
       @env = val.to_sym
     end
+  end
+  
+  class HashConfig
+    include Config
+    
+    def initialize(hash, env = :default)    
+      @env = env
+      set_config(hash)
+    end
+  end
+
+  class YamlConfig
+    require 'yaml'
+    
+    include Config
+
+    def initialize(filename, env = :default)
+      file = (File.exist? filename) ? filename : File.expand_path("~/#{ filename }")
+      raise ConfigFileError.new "Configuration file #{ filename } not found" unless File.exist? file
+
+      yaml = YAML.load_file file      
+      raise ConfigFileError.new "Configuration file #{ file } is empty!" unless yaml
+
+      @env = env
+      set_config(yaml)
+    end
+
   end
 end
 

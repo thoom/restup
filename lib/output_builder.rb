@@ -228,7 +228,7 @@ TEXT
 
       unless output.nil?
         file = File.expand_path(output)
-        if File.exists?(File.dirname file)
+        if File.exist?(File.dirname file)
           File.open(file, 'w') { |f| f.write response.body }
           puts Paint["Response written to file: #{ file }", colors[:info]]
         else

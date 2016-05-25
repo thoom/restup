@@ -117,6 +117,9 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 
 Version History
 ---------------
+0.12.0: Fixes Github issues #12 and #19. If using the library class instead of the CLI, you can pass in a Thoom::HashConfig object,
+instead of requiring a YAML file. CLI no longer generates a deprecated warning in the Ruby 2.3.
+
 0.11.3: Adds a simple response time to the output.
 
 0.11.2: Fixes Github issue #10.

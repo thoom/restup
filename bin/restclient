@@ -39,7 +39,7 @@ begin
   colors[:error]   = :red
 
   config_file    = '.restclient.yml'
-  config         = Thoom::Config.new config_file, :default
+  config         = Thoom::YamlConfig.new config_file, :default
   output_builder = Thoom::OutputBuilder.new colors
 
   new_colors = config.get(:colors, {yolo: :cyan})
@@ -189,7 +189,7 @@ begin
     output_builder.save_response(response, content_disposition, output)
     puts "\n"
   end
-rescue TimeoutError
+rescue Timeout::Error
   output_builder.quit Paint['Request timed out', colors[:error]]
 rescue SystemExit
   puts "\n"

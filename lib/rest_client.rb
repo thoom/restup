@@ -21,9 +21,9 @@ module Thoom
 
     def initialize(config)
       @config = config
-      @log    = Logger.new STDOUT
+      @log = Logger.new STDOUT
 
-      @headers          = {}
+      @headers = {}
       @standard_methods = %w(delete get head options patch post put)
     end
 
@@ -35,7 +35,7 @@ module Thoom
 
       if xmethods.include? m
         headers['x-http-method-override'] = m.upcase
-        m                                 = 'post'
+        m = 'post'
       end
 
       request_uri = uri.request_uri
