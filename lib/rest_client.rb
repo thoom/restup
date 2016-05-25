@@ -38,6 +38,8 @@ module Thoom
         m = 'post'
       end
 
+      raise RestClientError, 'Invalid URL' unless uri.respond_to?('request_uri')
+
       request_uri = uri.request_uri
       request     = Net::HTTP.const_get(m.capitalize).new request_uri
 
@@ -105,12 +107,11 @@ module Thoom
 
     def uri
       return @uri if @uri
-
       @uri = URI.parse url
     end
 
     def base
-      @config.get(:url)
+      @config.get(:url, '')
     end
 
     def url

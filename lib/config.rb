@@ -38,7 +38,7 @@ module Thoom
   class HashConfig
     include Config
 
-    def initialize(hash, env = :default)
+    def initialize(hash = {}, env = :default)
       @env = env
       set_config(hash)
     end

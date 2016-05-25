@@ -1,4 +1,5 @@
 ### Version Changelog
+0.13.0 Fixes Github issue [#13](https://github.com/thoom/restclient/issues/13). Breaking change since it no longer creates a config file if one doesn't exist.
 
 0.12.1: Fixes Github issues [#12](https://github.com/thoom/restclient/issues/12) and [#19](https://github.com/thoom/restclient/issues/19). If using the library class instead of the CLI, you can pass in a Thoom::HashConfig object,
 instead of requiring a YAML file. CLI no longer generates a deprecated warning in the Ruby 2.3.
