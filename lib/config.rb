@@ -6,28 +6,27 @@ module Thoom
       @message = message
     end
   end
-  
-  class ConfigFileError < ConfigError 
-  
+
+  class ConfigFileError < ConfigError
   end
-  
+
   module Config
     def set_config(config)
       @config = config.deep_symbolize_keys
     end
-    
+
     def get(key, val = nil)
       key = key.to_sym
-      if @config.has_key?(@env) && @config[@env].has_key?(key)
+      if @config.key?(@env) && @config[@env].key?(key)
         @config[@env][key]
-      elsif @config.has_key?(:default) && @config[:default].has_key?(key)
+      elsif @config.key?(:default) && @config[:default].key?(key)
         @config[:default][key]
-      elsif @config.has_key? key
+      elsif @config.key? key
         @config[key]
       elsif !val.nil?
         val
       else
-        raise ConfigError.new "Missing required configuration entry for #{ key }"
+        raise ConfigError, "Missing required configuration entry for #{key}"
       end
     end
 
@@ -35,11 +34,11 @@ module Thoom
       @env = val.to_sym
     end
   end
-  
+
   class HashConfig
     include Config
-    
-    def initialize(hash, env = :default)    
+
+    def initialize(hash, env = :default)
       @env = env
       set_config(hash)
     end
@@ -47,20 +46,19 @@ module Thoom
 
   class YamlConfig
     require 'yaml'
-    
+
     include Config
 
     def initialize(filename, env = :default)
-      file = (File.exist? filename) ? filename : File.expand_path("~/#{ filename }")
-      raise ConfigFileError.new "Configuration file #{ filename } not found" unless File.exist? file
+      file = (File.exist? filename) ? filename : File.expand_path("~/#{filename}")
+      raise ConfigFileError, "Configuration file #{filename} not found" unless File.exist? file
 
-      yaml = YAML.load_file file      
-      raise ConfigFileError.new "Configuration file #{ file } is empty!" unless yaml
+      yaml = YAML.load_file file
+      raise ConfigFileError, "Configuration file #{file} is empty!" unless yaml
 
       @env = env
       set_config(yaml)
     end
-
   end
 end
 
@@ -98,13 +96,13 @@ class Hash
   #   hash.stringify_keys
   #   # => {"name"=>"Rob", "age"=>"28"}
   def stringify_keys
-    transform_keys{ |key| key.to_s }
+    transform_keys(&:to_s)
   end
 
   # Destructively convert all keys to strings. Same as
   # +stringify_keys+, but modifies +self+.
   def stringify_keys!
-    transform_keys!{ |key| key.to_s }
+    transform_keys!(&:to_s)
   end
 
   # Returns a new hash with all keys converted to symbols, as long as
@@ -115,16 +113,28 @@ class Hash
   #   hash.symbolize_keys
   #   # => {:name=>"Rob", :age=>"28"}
   def symbolize_keys
-    transform_keys{ |key| key.to_sym rescue key }
+    transform_keys do |key|
+      begin
+                            key.to_sym
+                          rescue
+                            key
+                          end
+    end
   end
-  alias_method :to_options,  :symbolize_keys
+  alias to_options symbolize_keys
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+. Same as +symbolize_keys+, but modifies +self+.
   def symbolize_keys!
-    transform_keys!{ |key| key.to_sym rescue key }
+    transform_keys! do |key|
+      begin
+                             key.to_sym
+                           rescue
+                             key
+                           end
+    end
   end
-  alias_method :to_options!, :symbolize_keys!
+  alias to_options! symbolize_keys!
 
   # Validate all keys in a hash match <tt>*valid_keys</tt>, raising
   # ArgumentError on a mismatch.
@@ -139,7 +149,7 @@ class Hash
     valid_keys.flatten!
     each_key do |k|
       unless valid_keys.include?(k)
-        raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{valid_keys.map(&:inspect).join(', ')}")
+        raise ArgumentError, "Unknown key: #{k.inspect}. Valid keys are: #{valid_keys.map(&:inspect).join(', ')}"
       end
     end
   end
@@ -172,14 +182,14 @@ class Hash
   #   hash.deep_stringify_keys
   #   # => {"person"=>{"name"=>"Rob", "age"=>"28"}}
   def deep_stringify_keys
-    deep_transform_keys{ |key| key.to_s }
+    deep_transform_keys(&:to_s)
   end
 
   # Destructively convert all keys to strings.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_stringify_keys!
-    deep_transform_keys!{ |key| key.to_s }
+    deep_transform_keys!(&:to_s)
   end
 
   # Returns a new hash with all keys converted to symbols, as long as
@@ -191,43 +201,56 @@ class Hash
   #   hash.deep_symbolize_keys
   #   # => {:person=>{:name=>"Rob", :age=>"28"}}
   def deep_symbolize_keys
-    deep_transform_keys{ |key| key.to_sym rescue key }
+    deep_transform_keys do |key|
+      begin
+                                 key.to_sym
+                               rescue
+                                 key
+                               end
+    end
   end
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+. This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_symbolize_keys!
-    deep_transform_keys!{ |key| key.to_sym rescue key }
+    deep_transform_keys! do |key|
+      begin
+                                  key.to_sym
+                                rescue
+                                  key
+                                end
+    end
   end
 
   private
-    # support methods for deep transforming nested hashes and arrays
-    def _deep_transform_keys_in_object(object, &block)
-      case object
-      when Hash
-        object.each_with_object({}) do |(key, value), result|
-          result[yield(key)] = _deep_transform_keys_in_object(value, &block)
-        end
-      when Array
-        object.map {|e| _deep_transform_keys_in_object(e, &block) }
-      else
-        object
-      end
-    end
 
-    def _deep_transform_keys_in_object!(object, &block)
-      case object
-      when Hash
-        object.keys.each do |key|
-          value = object.delete(key)
-          object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
-        end
-        object
-      when Array
-        object.map! {|e| _deep_transform_keys_in_object!(e, &block)}
-      else
-        object
+  # support methods for deep transforming nested hashes and arrays
+  def _deep_transform_keys_in_object(object, &block)
+    case object
+    when Hash
+      object.each_with_object({}) do |(key, value), result|
+        result[yield(key)] = _deep_transform_keys_in_object(value, &block)
       end
+    when Array
+      object.map { |e| _deep_transform_keys_in_object(e, &block) }
+    else
+      object
     end
+  end
+
+  def _deep_transform_keys_in_object!(object, &block)
+    case object
+    when Hash
+      object.keys.each do |key|
+        value = object.delete(key)
+        object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
+      end
+      object
+    when Array
+      object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
+    else
+      object
+    end
+  end
 end

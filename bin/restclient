@@ -8,14 +8,14 @@ require 'rest_client'
 require 'optparse'
 
 begin
-  #set some default colors
-  default_colors = {subtitle_color: :default, subtitle_bgcolor: :default, title_color: :default, title_bgcolor: :default}
+  # set some default colors
+  default_colors = { subtitle_color: :default, subtitle_bgcolor: :default, title_color: :default, title_bgcolor: :default }
 
   output_default = Thoom::OutputBuilder.new default_colors
   output_builder = output_default
-  
-  output_default.quit_with_title('Missing required options. Use "--help" OR "--help details" for more information', false) if ARGV.length == 0
-  
+
+  output_default.quit_with_title('Missing required options. Use "--help" OR "--help details" for more information', false) if ARGV.empty?
+
   colors                 = {}
   colors[:title_color]   = '003366'
   colors[:title_bgcolor] = :white
@@ -42,7 +42,7 @@ begin
   config         = Thoom::YamlConfig.new config_file, :default
   output_builder = Thoom::OutputBuilder.new colors
 
-  new_colors = config.get(:colors, {yolo: :cyan})
+  new_colors = config.get(:colors, yolo: :cyan)
 
   output_builder.quit(Paint['Empty color: hash found in YAML configuration', colors[:error]]) if new_colors.nil? || new_colors.empty?
   colors.merge!(new_colors)
@@ -155,8 +155,8 @@ begin
   client.method   = ARGV.shift
   client.endpoint = ARGV.shift
 
-  client.cert     = opts[:cert] if opts.has_key? :cert
-  client.data     = opts[:data] if opts.has_key? :data
+  client.cert     = opts[:cert] if opts.key? :cert
+  client.data     = opts[:data] if opts.key? :data
 
   headers_default = config.get(:headers, {})
   headers_default.each { |key, val| client.headers[key] = val } if headers_default.respond_to? :each
@@ -175,7 +175,7 @@ begin
   before = Time.now
   response = client.submit request
   output_builder.response_time = (Time.now - before).round(2)
-  
+
   output_builder.quit(response) unless response.respond_to? :each_header
 
   if response_code_only
@@ -194,7 +194,7 @@ rescue Timeout::Error
 rescue SystemExit
   puts "\n"
 rescue Thoom::ConfigFileError
-  output_builder.build_config()
+  output_builder.build_config
 rescue Exception => e
-  output_builder.quit "#{ Paint[e.message.capitalize, colors[:error]] }\n\n"
+  output_builder.quit "#{Paint[e.message.capitalize, colors[:error]]}\n\n"
 end

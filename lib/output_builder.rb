@@ -16,7 +16,7 @@ module Thoom
     def title(centered = true)
       return if title_output
 
-      client_copy = "Thoom::RestClient v#{ Thoom::Constants::VERSION }"
+      client_copy = "Thoom::RestClient v#{Thoom::Constants::VERSION}"
       author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
       link_copy   = '@link http://github.com/thoom/restclient'
 
@@ -37,7 +37,7 @@ module Thoom
     def header(h)
       len = Paint.unpaint(h).length
       l   = '-' * len
-      puts "\n#{ h }\n#{ l }\n"
+      puts "\n#{h}\n#{l}\n"
     end
 
     def help(config_file, opts)
@@ -48,7 +48,7 @@ module Thoom
 The RestClient works with APIs that use Basic Authentication. To use other forms of
 authentication, custom headers can either be passed with each request or stored in the config file as described below.
 
-It uses a #{ Paint[config_file, colors[:help_filename]] } file to pull in defaults and provides several shortcut methods
+It uses a #{Paint[config_file, colors[:help_filename]]} file to pull in defaults and provides several shortcut methods
 that can simplify using a REST-based API.
 
 If the API uses form encoded input, you need to define your post in JSON format. The client
@@ -60,7 +60,7 @@ TEXT
 
       section 'YAML config'
       puts <<TEXT
-The client uses two different methods to find the YAML file #{ Paint[config_file, colors[:help_filename]] }. It will
+The client uses two different methods to find the YAML file #{Paint[config_file, colors[:help_filename]]}. It will
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
@@ -102,13 +102,13 @@ url: http://example.com/api
 user: myname
 pass: P@ssWord
 
-#{ Paint['restclient get /hello/world -j', colors[:help_sample_request]] }
+#{Paint['restclient get /hello/world -j', colors[:help_sample_request]]}
 
-Submits a GET request to #{ Paint['http://example/api/hello/world', colors[:help_sample_url]] } with Basic Auth header using the
+Submits a GET request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header using the
 user and pass values in the config.
 
-It would return JSON values. If successful, the JSON would be parsed and highlighted in #{ Paint[colors[:success].to_s.upcase, colors[:success]] }. If
-the an error was returned (an HTTP response code >= 400), the body would be in #{ Paint[colors[:error].to_s.upcase, colors[:error]] }.
+It would return JSON values. If successful, the JSON would be parsed and highlighted in #{Paint[colors[:success].to_s.upcase, colors[:success]]}. If
+the an error was returned (an HTTP response code >= 400), the body would be in #{Paint[colors[:error].to_s.upcase, colors[:error]]}.
 TEXT
 
       header 'POST Request'
@@ -121,14 +121,14 @@ pass: P@ssWord
 headers:
   X-Custom-Id: abc12345
 
-#{ Paint['restclient post /hello/world -j -f salutation.json', colors[:help_sample_request]] }
+#{Paint['restclient post /hello/world -j -f salutation.json', colors[:help_sample_request]]}
 
-Submits a POST request to #{ Paint['http://example/api/hello/world', colors[:help_sample_url]] } with Basic Auth header
+Submits a POST request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header
 using the user and pass values in the config. It imports the salutation.json and passes it to the API as application/json
 content type. It would also set the X-Custom-Id header with every request.
 
-It would return JSON values. If successful, the JSON would be parsed and highlighted in #{ Paint[colors[:success].to_s.upcase, colors[:success]] }. If
-the an error was returned (an HTTP response code >= 400), the body would be in #{ Paint[colors[:error].to_s.upcase, colors[:error]] }.
+It would return JSON values. If successful, the JSON would be parsed and highlighted in #{Paint[colors[:success].to_s.upcase, colors[:success]]}. If
+the an error was returned (an HTTP response code >= 400), the body would be in #{Paint[colors[:error].to_s.upcase, colors[:error]]}.
 TEXT
       exit
     end
@@ -136,7 +136,7 @@ TEXT
     def section(h)
       len = Paint.unpaint(h).length
       l   = '-' * (len + 4)
-      puts "\n#{ l }\n| #{ h } |\n#{ l }\n"
+      puts "\n#{l}\n| #{h} |\n#{l}\n"
     end
 
     def xp(xml_text)
@@ -151,13 +151,11 @@ TEXT
     def request(client, request, filename, verbose)
       path  = client.uri.path
       query = ''
-      if client.uri.query
-        query += '?' + client.uri.query
-      end
+      query += '?' + client.uri.query if client.uri.query
 
       port_color      = client.uri.port == 80 ? :request_port_http : :request_port_tls
-      request_section = "REQUEST: #{ Paint[client.method.upcase, colors[:request_method]] } "
-      request_section += Paint["#{ client.uri.host }:", colors[:request_path]]
+      request_section = "REQUEST: #{Paint[client.method.upcase, colors[:request_method]]} "
+      request_section += Paint["#{client.uri.host}:", colors[:request_path]]
       request_section += Paint[client.uri.port.to_s, colors[port_color]]
       request_section += Paint[path, colors[:request_path]]
       request_section += Paint[query, colors[:request_endpoint]]
@@ -171,7 +169,7 @@ TEXT
         section request_section if verbose
 
         header 'HEADERS'
-        request.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+        request.each_header { |k, v| puts "#{k}: #{v}\n" }
 
         if client.data
           header 'BODY'
@@ -179,22 +177,22 @@ TEXT
           if client.data.ascii_only?
             puts client.data
           else
-            puts "File: '#{ filename }' posted, but contains non-ASCII data, so it's not echoed here."
+            puts "File: '#{filename}' posted, but contains non-ASCII data, so it's not echoed here."
           end
         end
       else
-        puts "\n#{ request_section }"
+        puts "\n#{request_section}"
       end
     end
 
     def response(response, verbose)
       response_color   = response.code.to_i < 400 ? colors[:success] : colors[:error]
-      response_section = "RESPONSE: #{ Paint[response.code, response_color] } (#{ response_time } sec)"
+      response_section = "RESPONSE: #{Paint[response.code, response_color]} (#{response_time} sec)"
 
       if verbose || response_color == colors[:error]
-        section response_section        
+        section response_section
         header 'HEADERS'
-        response.each_header { |k, v| puts "#{ k }: #{ v }\n" }
+        response.each_header { |k, v| puts "#{k}: #{v}\n" }
       else
         puts response_section
       end
@@ -207,84 +205,84 @@ TEXT
       elsif !response.body.ascii_only?
         puts Paint["RESPONSE contains non-ASCII data, so it's not echoed here.", colors[:info]]
       else
-        if response['content-type'].nil?
-          body = response.body
-        elsif response['content-type'].include? 'json'
-          body = JSON.pretty_unparse(JSON.parse response.body)
-        elsif response['content-type'].include? 'xml'
-          body = xp(response.body)
-        else
-          body = response.body
-        end
+        body = if response['content-type'].nil?
+                 response.body
+               elsif response['content-type'].include? 'json'
+                 JSON.pretty_unparse(JSON.parse(response.body))
+               elsif response['content-type'].include? 'xml'
+                 xp(response.body)
+               else
+                 response.body
+               end
         puts Paint[body, response_color]
       end
     end
 
     def save_response(response, content_disposition, output)
-      if content_disposition && output.nil? && response.to_hash.has_key?('content-disposition')
+      if content_disposition && output.nil? && response.to_hash.key?('content-disposition')
         cd     = response['content-disposition']
         output = cd[cd.index('filename=') + 9..-1]
       end
 
       unless output.nil?
         file = File.expand_path(output)
-        if File.exist?(File.dirname file)
+        if File.exist?(File.dirname(file))
           File.open(file, 'w') { |f| f.write response.body }
-          puts Paint["Response written to file: #{ file }", colors[:info]]
+          puts Paint["Response written to file: #{file}", colors[:info]]
         else
-          puts Paint["Could not write to file #{ file }", colors[:error]]
+          puts Paint["Could not write to file #{file}", colors[:error]]
         end
       end
     end
 
     def quit_with_title(content, centered = true)
       title(centered)
-      puts "\n#{ content }"
+      puts "\n#{content}"
       exit
     end
 
     def quit(content)
       title
-      puts "\n#{ content }"
+      puts "\n#{content}"
       exit
     end
-    
-    def build_config()
+
+    def build_config
       title(false)
-      
-      section "Configuration file installation"
-      
+
+      section 'Configuration file installation'
+
       puts <<INFO
 
 It looks like the configuration file is incomplete.
 At a minimum, the target URL is required.
 
 INFO
-      
-      print "Please enter the target URL: "
+
+      print 'Please enter the target URL: '
       config_url = STDIN.gets.chomp
-  
+
       puts <<INFO
 
-For Basic Authentication, a #{ Paint['username', colors[:help_filename]] } and #{ Paint['password', colors[:help_filename]] } are required.
-If not using Basic Authentication, hit #{ Paint['[Enter]', colors[:help_filename]] } to continue.
+For Basic Authentication, a #{Paint['username', colors[:help_filename]]} and #{Paint['password', colors[:help_filename]]} are required.
+If not using Basic Authentication, hit #{Paint['[Enter]', colors[:help_filename]]} to continue.
 
 INFO
-  
-      print "Enter a username: "
+
+      print 'Enter a username: '
       config_user = STDIN.gets.chomp
-      config_pass = ""
-  
-      unless (config_user.nil? or config_user.empty?)
-        print "Enter a password: "
+      config_pass = ''
+
+      unless config_user.nil? || config_user.empty?
+        print 'Enter a password: '
         config_pass = STDIN.gets.chomp
       end
-      
+
       config_user = nil if config_user.empty?
       config_pass = nil if config_pass.empty?
-  
-      File.open('.restclient.yml', 'w') do |f| 
-        f.write({'url' => config_url, 'user' => config_user, 'pass' => config_pass}.to_yaml) 
+
+      File.open('.restclient.yml', 'w') do |f|
+        f.write({ 'url' => config_url, 'user' => config_user, 'pass' => config_pass }.to_yaml)
       end
 
       puts <<INFO
@@ -293,6 +291,6 @@ Configuration file created.
 
 Use "--help" OR "--help details" for more information on configuration options.
 INFO
-    end  
+    end
   end
 end

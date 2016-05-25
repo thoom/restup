@@ -30,8 +30,8 @@ module Thoom
     def request
       m = method.downcase
 
-      raise RestClientError.new '":xmethods:" should be an array' unless xmethods.respond_to? :include?
-      raise RestClientError.new 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
+      raise RestClientError, '":xmethods:" should be an array' unless xmethods.respond_to? :include?
+      raise RestClientError, 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
 
       if xmethods.include? m
         headers['x-http-method-override'] = m.upcase
@@ -41,14 +41,12 @@ module Thoom
       request_uri = uri.request_uri
       request     = Net::HTTP.const_get(m.capitalize).new request_uri
 
-      unless user.to_s.empty? || pass.to_s.empty?
-        request.basic_auth(user, pass)
-      end
+      request.basic_auth(user, pass) unless user.to_s.empty? || pass.to_s.empty?
 
       request['User-Agent']  = 'Thoom::RestClient/' + Constants::VERSION
       request.content_length = 0
 
-      #This just sets a default to JSON
+      # This just sets a default to JSON
       request.content_type   = @config.get(:json, Constants::MIME_JSON) if %w(post put patch).include?(m) && (request.content_type.nil? || request.content_type.empty?)
 
       headers.each { |key, val| request[key.to_s.strip] = val.strip } if headers.respond_to? :each
@@ -87,8 +85,8 @@ module Thoom
 
       http.request request
 
-      #TODO: This was originally hardcoded... probably need to figure out a resolution some day
-      #if response.code.to_i == 301
+      # TODO: This was originally hardcoded... probably need to figure out a resolution some day
+      # if response.code.to_i == 301
       #  newloc = response.header['location'][response.header['location'].index('rest/api/')+8..-1]
       #
       #  puts "301 Redirected to new endpoint: #{newloc}".red
@@ -97,7 +95,7 @@ module Thoom
       #  self.endpoint = newloc
       #
       #  response = submit(self.request)
-      #end
+      # end
     end
 
     def pem
