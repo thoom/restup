@@ -117,17 +117,17 @@ the an error was returned (an HTTP response code >= 400), the body would be in _
 
 Version History
 ---------------
-0.12.1: Fixes Github issues #12 and #19. If using the library class instead of the CLI, you can pass in a Thoom::HashConfig object,
+0.12.1: Fixes Github issues [#12](https://github.com/thoom/restclient/issues/12) and [#19](https://github.com/thoom/restclient/issues/19). If using the library class instead of the CLI, you can pass in a Thoom::HashConfig object,
 instead of requiring a YAML file. CLI no longer generates a deprecated warning in the Ruby 2.3.
 
 0.11.3: Adds a simple response time to the output.
 
-0.11.2: Fixes Github issue #10.
+0.11.2: Fixes Github issue [#10](https://github.com/thoom/restclient/issues/10).
 
-0.11.1: Fixes Github issues #2, #5, #6, #7, and #8. If a configuration file is not found,
+0.11.1: Fixes Github issues [#2](https://github.com/thoom/restclient/issues/2), [#5](https://github.com/thoom/restclient/issues/5), [#6](https://github.com/thoom/restclient/issues/6), [#7](https://github.com/thoom/restclient/issues/7), and [#8](https://github.com/thoom/restclient/issues/8). If a configuration file is not found,
 there is now a simple wizard that will ask a few questions and then generate the config file.
 
-0.10.1: Fixes Github issues #1 and #4. `PUT`, `PATCH`, and `POST` all set a default `JSON` content type. Added `--response-only` flag.
+0.10.1: Fixes Github issues [#1](https://github.com/thoom/restclient/issues/1) and [#4](https://github.com/thoom/restclient/issues/4). `PUT`, `PATCH`, and `POST` all set a default `JSON` content type. Added `--response-only` flag.
 
 0.10.0: Fixed a bug missed where headers in the YAML file were not parsed. Changed the YAML :headers: to use a hash instead of array.
 
