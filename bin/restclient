@@ -93,23 +93,14 @@ begin
       opts[:cert] = cert
     end
 
-    o.on('-d', '--data DATA', 'Sets data string as POST body') do |data|
-      opts[:data] = data
-    end
-
     o.on('-e', '--env ENVIRONMENT', 'Sets YAML environment for the request') do |e|
       config.env = e.to_sym
       env_colors = config.get(:colors, {})
       colors.merge!(env_colors)
     end
 
-    o.on('-f', '--file FILE', 'Imports file as POST body (assumes file based on current location)') do |file|
-      filename    = file
-      opts[:data] = File.read(File.realpath(file, Dir.pwd))
-    end
-
     o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
-      key, val           = header.split(':')
+      key, val = header.split(':')
       headers[key.strip] = val.strip
     end
 
@@ -127,6 +118,14 @@ begin
 
     o.on('-o', '--output FILE', 'Save output to file passed') do |file|
       output = file
+    end
+
+    o.on('-p', '--password PASSWORD', 'Password for Basic Authentication') do |password|
+      opts[:pass] = password
+    end
+
+    o.on('-u', '--username USERNAME', 'Username for Basic Authentication') do |username|
+      opts[:user] = username
     end
 
     o.on('-x', '--xml [c|a]', 'Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)') do |xml|
@@ -157,12 +156,18 @@ begin
   parser.parse! ARGV
   output_builder.quit(Paint['Missing required METHOD and/or ENDPOINT', colors[:error]]) if ARGV.length < 2
 
-  client          = Thoom::RestClient.new config
-  client.method   = ARGV.shift
-  client.endpoint = ARGV.shift
+  config.set(:user, opts[:user]) if opts.key? :user
+  config.set(:pass, opts[:pass]) if opts.key? :pass
 
-  client.cert     = opts[:cert] if opts.key? :cert
-  client.data     = opts[:data] if opts.key? :data
+  puts config.print
+  client = Thoom::RestClient.new config
+  client.method = ARGV.shift
+  client.endpoint = ARGV.shift
+  client.cert = opts[:cert] if opts.key? :cert
+
+  if ARGF.filename != '-' || (!STDIN.tty? && !STDIN.closed?)
+    client.data = ARGF.read
+  end
 
   headers_default = config.get(:headers, {})
   headers_default.each { |key, val| client.headers[key] = val } if headers_default.respond_to? :each

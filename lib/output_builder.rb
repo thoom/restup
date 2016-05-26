@@ -45,13 +45,14 @@ module Thoom
       section 'How to use the RestClient'
 
       puts <<TEXT
-The RestClient works with APIs that use Basic Authentication. To use other forms of
-authentication, custom headers can either be passed with each request or stored in the config file as described below.
+The RestClient works out of the box with APIs that use Basic Authentication (though this is not required).
+To use other forms of authentication, custom headers can either be passed with each request
+or stored in the config file as described below.
 
-It uses a #{Paint[config_file, colors[:help_filename]]} file to pull in defaults and provides several shortcut methods
+If a #{Paint[config_file, colors[:help_filename]]} file exists, the client will pull in defaults and provide several shortcut methods
 that can simplify using a REST-based API.
 
-If the API uses form encoded input, you need to define your post in JSON format. The client
+If the API uses form encoded input, you can define your post in JSON format. The client
 will encode it automatically.
 TEXT
 
@@ -104,6 +105,9 @@ pass: P@ssWord
 
 #{Paint['restclient get /hello/world -j', colors[:help_sample_request]]}
 
+To use without the config:
+#{Paint['restclient get http://example.com/api/hello/world -u myname -p P@ssWord -j', colors[:help_sample_request]]}
+
 Submits a GET request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header using the
 user and pass values in the config.
 
@@ -121,7 +125,7 @@ pass: P@ssWord
 headers:
   X-Custom-Id: abc12345
 
-#{Paint['restclient post /hello/world -j -f salutation.json', colors[:help_sample_request]]}
+#{Paint['restclient post /hello/world -j < salutation.json', colors[:help_sample_request]]}
 
 Submits a POST request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header
 using the user and pass values in the config. It imports the salutation.json and passes it to the API as application/json

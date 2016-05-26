@@ -19,8 +19,8 @@ module Thoom
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log
 
-    def initialize(config)
-      @config = config
+    def initialize(config = nil)
+      @config = config.nil? ? HashConfig.new : config
       @log = Logger.new STDOUT
 
       @headers = {}

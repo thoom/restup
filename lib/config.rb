@@ -11,11 +11,11 @@ module Thoom
   end
 
   module Config
-    def set_config(config)
+    def config=(config)
       @config = config.deep_symbolize_keys
     end
 
-    def get(key, val = nil)
+    def get(key, default_val = nil)
       key = key.to_sym
       if @config.key?(@env) && @config[@env].key?(key)
         @config[@env][key]
@@ -23,8 +23,8 @@ module Thoom
         @config[:default][key]
       elsif @config.key? key
         @config[key]
-      elsif !val.nil?
-        val
+      elsif !default_val.nil?
+        default_val
       else
         raise ConfigError, "Missing required configuration entry for #{key}"
       end
@@ -33,6 +33,18 @@ module Thoom
     def env=(val)
       @env = val.to_sym
     end
+
+    def set(key, val, env = :default)
+      env = env.to_sym
+      key = key.to_sym
+
+      @config[env] = {} unless @config.key? env
+      @config[env][key] = val
+    end
+
+    def print
+      @config.to_s
+    end
   end
 
   class HashConfig
@@ -40,7 +52,7 @@ module Thoom
 
     def initialize(hash = {}, env = :default)
       @env = env
-      set_config(hash)
+      config = hash
     end
   end
 
@@ -57,7 +69,7 @@ module Thoom
       raise ConfigFileError, "Configuration file #{file} is empty!" unless yaml
 
       @env = env
-      set_config(yaml)
+      config = yaml
     end
   end
 end

@@ -1,7 +1,12 @@
 ### Version Changelog
-0.13.0 Fixes Github issue [#13](https://github.com/thoom/restclient/issues/13). Breaking change since it no longer creates a config file if one doesn't exist.
+0.14.0 Fixes Github issue [#17](https://github.com/thoom/restclient/issues/17). It also simplifies how files or data are passed into the client.
+Breaking change because flags -f and -d have been removed. Instead just pass in with STDIN instead.
 
-0.12.1: Fixes Github issues [#12](https://github.com/thoom/restclient/issues/12) and [#19](https://github.com/thoom/restclient/issues/19). If using the library class instead of the CLI, you can pass in a Thoom::HashConfig object,
+0.13.0 Fixes Github issue [#13](https://github.com/thoom/restclient/issues/13). 
+Breaking change since it no longer creates a config file if one doesn't exist.
+
+0.12.1: Fixes Github issues [#12](https://github.com/thoom/restclient/issues/12) and [#19](https://github.com/thoom/restclient/issues/19). 
+If using the library class instead of the CLI, you can pass in a `Thoom::HashConfig` object,
 instead of requiring a YAML file. CLI no longer generates a deprecated warning in the Ruby 2.3.
 
 0.11.3: Adds a simple response time to the output.

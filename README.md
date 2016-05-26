@@ -1,13 +1,14 @@
 Thoom::RestClient
 =================
 
-The RestClient works with APIs that use Basic Authentication. To use other forms of
-authentication, custom headers can either be passed with each request or stored in the config file as described below.
+The RestClient works out of the box with APIs that use Basic Authentication (though this is not required). 
+To use other forms of authentication, custom headers can either be passed with each request
+or stored in the config file as described below.
 
-It uses a `.restclient.yml` file to pull in defaults and provides several shortcut methods
+If a `.restclient.yml` file exists, the client will pull in defaults and provide several shortcut methods
 that can simplify using a REST-based API.
 
-If the API uses form encoded input, you need to define your post in JSON format. The client
+If the API uses form encoded input, you can define your post in JSON format. The client
 will encode it automatically.
 
 Installation
@@ -28,12 +29,12 @@ Console
             --response-code-only         Only outputs the response code
             --success-only               Only outputs whether or not the request was successful
         -c, --cert CERTFILE              Imports cert for Client-Authentication endpoints
-        -d, --data DATA                  Sets data string as POST body
         -e, --env ENVIRONMENT            Sets YAML environment for the request
-        -f, --file FILE                  Imports file as POST body (assumes file based on current location)
         -h, --header HEADER              Sets arbitrary header passed in format "HEADER: VALUE"
         -j, --json [c|a]                 Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)
         -o, --output FILE                Save output to file passed
+        -p, --password PASSWORD          Password for Basic Authentication
+        -u, --username USERNAME          Username for Basic Authentication
         -x, --xml [c|a]                  Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)
             --version                    Shows client version
             --help [details]             Shows this message
@@ -87,6 +88,10 @@ The YAML config:
 The command line:
 
     restclient get /hello/world -j
+    
+To use without the config:
+
+    restclient get http://example.com/api/hello/world -u myname -p P@ssWord -j
 
 Submits a GET request to `http://example/api/hello/world` with Basic Auth header using the
 user and pass values in the config.
@@ -106,7 +111,11 @@ The YAML config:
 
 The command line:
 
-    restclient post /hello/world -j -f salutation.json
+    restclient post /hello/world -j < salutation.json
+    
+OR
+
+    cat salutation.json | restclient post /hello/world 
 
 Submits a POST request to `http://example/api/hello/world` with Basic Auth header using the
 user and pass values in the config. It imports the salutation.json and passes it to the API as application/json
