@@ -98,7 +98,7 @@ begin
       env_colors = config.get(:colors, {})
       colors.merge!(env_colors)
     end
-
+    
     o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
       key, val = header.split(':')
       headers[key.strip] = val.strip
@@ -119,7 +119,7 @@ begin
     o.on('-o', '--output FILE', 'Save output to file passed') do |file|
       output = file
     end
-
+    
     o.on('-p', '--password PASSWORD', 'Password for Basic Authentication') do |password|
       opts[:pass] = password
     end
@@ -159,7 +159,6 @@ begin
   config.set(:user, opts[:user]) if opts.key? :user
   config.set(:pass, opts[:pass]) if opts.key? :pass
 
-  puts config.print
   client = Thoom::RestClient.new config
   client.method = ARGV.shift
   client.endpoint = ARGV.shift
