@@ -24,9 +24,14 @@ The client is also available as a Docker image. To install:
 
     docker pull thoom/restclient
 
-To run (To simulate this as a gem, you could create a `restclient` shell script):
+To run:
 
-    docker run --rm $PWD:/usr/src/restclient thoom/restclient restclient
+    docker run --rm -v $PWD:/usr/src/restclient thoom/restclient restclient
+
+A sample shell script `restclient`:
+
+    #!/bin/bash
+    docker run --rm -v $PWD:/usr/src/restclient thoom/restclient restclient "@"
 
 Console
 -------
