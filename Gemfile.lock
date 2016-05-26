@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    paint (1.0.1)
+    restclient (0.14.2)
+      paint (~> 1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  restclient
+
+BUNDLED WITH
+   1.12.4
