@@ -11,7 +11,7 @@ module Thoom
   end
 
   module Config
-    def config=(config)
+    def config_set(config)
       @config = config.deep_symbolize_keys
     end
 
@@ -52,7 +52,7 @@ module Thoom
 
     def initialize(hash = {}, env = :default)
       @env = env
-      config = hash
+      config_set(hash)
     end
   end
 
@@ -69,7 +69,7 @@ module Thoom
       raise ConfigFileError, "Configuration file #{file} is empty!" unless yaml
 
       @env = env
-      config = yaml
+      config_set(yaml)
     end
   end
 end

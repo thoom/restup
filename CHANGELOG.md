@@ -1,5 +1,5 @@
 ### Version Changelog
-0.14.0 Fixes Github issue [#17](https://github.com/thoom/restclient/issues/17). It also simplifies how files or data are passed into the client.
+0.14.1 Fixes Github issue [#17](https://github.com/thoom/restclient/issues/17). It also simplifies how files or data are passed into the client.
 Breaking change because flags -f and -d have been removed. Instead just pass in with STDIN instead.
 
 0.13.0 Fixes Github issue [#13](https://github.com/thoom/restclient/issues/13). 
