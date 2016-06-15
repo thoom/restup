@@ -1,10 +1,9 @@
 FROM ruby:alpine
+MAINTAINER zdp@thoomtech.com
 
-COPY Gemfile /usr/src/app/
-COPY Gemfile.lock /usr/src/app/
+COPY ["Gemfile", "Gemfile.lock", "/usr/src/app/"]
 
-WORKDIR /usr/src/app/
-
-RUN bundle install
+RUN cd /usr/src/app/ && bundle install
 
 WORKDIR /usr/src/restclient
+ENTRYPOINT ["restclient"]
