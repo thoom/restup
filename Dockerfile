@@ -1,9 +1,9 @@
 FROM ruby:alpine
-MAINTAINER zdp@thoomtech.com
+MAINTAINER Z.d. Peacock <zdp@thoomtech.com>
 
-COPY ["Gemfile", "Gemfile.lock", "/usr/src/app/"]
+COPY ["Gemfile", "Gemfile.lock", "/src/"]
 
-RUN cd /usr/src/app/ && bundle install
+RUN cd /src && bundle install
 
-WORKDIR /usr/src/restclient
+WORKDIR /restclient
 ENTRYPOINT ["restclient"]
