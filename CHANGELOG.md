@@ -1,4 +1,7 @@
 ### Version Changelog
+0.14.3 Fixes Github issues [#21](https://github.com/thoom/restclient/issues/21) and [#26](https://github.com/thoom/restclient/issues/26). 
+You can use YAML now instead of JSON for JSON requests. Since JSON is a subset of YAML, this is not a breaking change.
+
 0.14.2 Fixes Github issue [#17](https://github.com/thoom/restclient/issues/17). It also simplifies how files or data are passed into the client.
 Breaking change because flags -f and -d have been removed. Instead just pass in with STDIN instead.
 

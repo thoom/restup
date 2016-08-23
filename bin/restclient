@@ -6,6 +6,8 @@ require 'output_builder'
 require 'rest_client'
 
 require 'optparse'
+require 'json'
+require 'yaml'
 
 begin
   # set some default colors
@@ -164,10 +166,6 @@ begin
   client.endpoint = ARGV.shift
   client.cert = opts[:cert] if opts.key? :cert
 
-  if ARGF.filename != '-' || (!STDIN.tty? && !STDIN.closed?)
-    client.data = ARGF.read
-  end
-
   headers_default = config.get(:headers, {})
   headers_default.each { |key, val| client.headers[key] = val } if headers_default.respond_to? :each
 
@@ -179,8 +177,24 @@ begin
     client.headers[key] = val
   end
 
+  if ARGF.filename != '-' || (!STDIN.tty? && !STDIN.closed?)
+    raw = ARGF.read
+    # Since JSON is a valid subset of YAML, parse it as YAML first, 
+    # then convert it to JSON. 
+    if val == :json
+      yaml = YAML.load raw
+      data = yaml.to_json
+    else
+      data = raw
+    end
+
+    client.data = data
+  end
+
   request = client.request
-  output_builder.request(client, request, filename, verbose) unless response_code_only || success_only || response_only
+  unless response_code_only || success_only || response_only
+    output_builder.request(client, request, filename, verbose)
+  end
 
   before = Time.now
   response = client.submit request
