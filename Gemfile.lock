@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     paint (1.0.1)
-    restclient (0.14.2)
+    restclient (0.14.3)
       paint (~> 1.0)
 
 PLATFORMS

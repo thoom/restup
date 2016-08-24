@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 
+$LOAD_PATH.unshift(File.expand_path(File.dirname(File.dirname(__FILE__))) + '/lib')
+
 require 'constants'
 require 'config'
 require 'output_builder'
 require 'rest_client'
 
 require 'optparse'
+require 'json'
+require 'yaml'
 
 begin
   # set some default colors
@@ -98,7 +102,7 @@ begin
       env_colors = config.get(:colors, {})
       colors.merge!(env_colors)
     end
-    
+
     o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
       key, val = header.split(':')
       headers[key.strip] = val.strip
@@ -119,7 +123,7 @@ begin
     o.on('-o', '--output FILE', 'Save output to file passed') do |file|
       output = file
     end
-    
+
     o.on('-p', '--password PASSWORD', 'Password for Basic Authentication') do |password|
       opts[:pass] = password
     end
@@ -164,10 +168,6 @@ begin
   client.endpoint = ARGV.shift
   client.cert = opts[:cert] if opts.key? :cert
 
-  if ARGF.filename != '-' || (!STDIN.tty? && !STDIN.closed?)
-    client.data = ARGF.read
-  end
-
   headers_default = config.get(:headers, {})
   headers_default.each { |key, val| client.headers[key] = val } if headers_default.respond_to? :each
 
@@ -179,8 +179,20 @@ begin
     client.headers[key] = val
   end
 
+  if ARGF.filename != '-' || (!STDIN.tty? && !STDIN.closed?)
+    data = ARGF.read
+
+    if !client.headers.key?('content-type') || client.headers['content-type'].include?('json')
+      data = YAML.load(data).to_json
+    end
+
+    client.data = data
+  end
+
   request = client.request
-  output_builder.request(client, request, filename, verbose) unless response_code_only || success_only || response_only
+  unless response_code_only || success_only || response_only
+    output_builder.request(client, request, filename, verbose)
+  end
 
   before = Time.now
   response = client.submit request
