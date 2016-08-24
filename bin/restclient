@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH.unshift(File.expand_path(File.dirname(File.dirname(__FILE__))) + "/lib")
+$LOAD_PATH.unshift(File.expand_path(File.dirname(File.dirname(__FILE__))) + '/lib')
 
 require 'constants'
 require 'config'
@@ -183,8 +183,6 @@ begin
     data = ARGF.read
 
     if !client.headers.key?('content-type') || client.headers['content-type'].include?('json')
-      require 'yaml'
-      require 'json'
       data = YAML.load(data).to_json
     end
 
