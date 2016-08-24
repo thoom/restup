@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+$LOAD_PATH.unshift(File.expand_path(File.dirname(File.dirname(__FILE__))) + "/lib")
+
 require 'constants'
 require 'config'
 require 'output_builder'
@@ -100,7 +102,7 @@ begin
       env_colors = config.get(:colors, {})
       colors.merge!(env_colors)
     end
-    
+
     o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
       key, val = header.split(':')
       headers[key.strip] = val.strip
@@ -121,7 +123,7 @@ begin
     o.on('-o', '--output FILE', 'Save output to file passed') do |file|
       output = file
     end
-    
+
     o.on('-p', '--password PASSWORD', 'Password for Basic Authentication') do |password|
       opts[:pass] = password
     end
@@ -178,14 +180,12 @@ begin
   end
 
   if ARGF.filename != '-' || (!STDIN.tty? && !STDIN.closed?)
-    raw = ARGF.read
-    # Since JSON is a valid subset of YAML, parse it as YAML first, 
-    # then convert it to JSON. 
-    if val == :json
-      yaml = YAML.load raw
-      data = yaml.to_json
-    else
-      data = raw
+    data = ARGF.read
+
+    if !client.headers.key?('content-type') || client.headers['content-type'].include?('json')
+      require 'yaml'
+      require 'json'
+      data = YAML.load(data).to_json
     end
 
     client.data = data

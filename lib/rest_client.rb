@@ -1,4 +1,4 @@
-require 'json'
+require 'yaml'
 require 'logger'
 require 'net/http'
 require 'openssl'
@@ -56,11 +56,11 @@ module Thoom
 
       headers.each { |key, val| request[key.to_s.strip] = val.strip } if headers.respond_to? :each
 
-      if data
-        body &= data
+      unless data.nil? || data.empty?
+        body = data.clone
         if request.content_type == 'application/x-www-form-urlencoded'
-          json = JSON.parse(body)
-          body = URI.encode_www_form(json)
+          yaml = YAML.load(body)
+          body = URI.encode_www_form(yaml)
         end
 
         request.content_length = data.length
@@ -74,7 +74,7 @@ module Thoom
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = @config.get(:timeout, 300)
 
-      configure_ssl http
+      configure_tls http
       http.request request
     end
 
@@ -111,7 +111,7 @@ module Thoom
 
     private
 
-    def configure_ssl(http)
+    def configure_tls(http)
       if uri.scheme == 'https'
         http.use_ssl = true
 
