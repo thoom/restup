@@ -94,7 +94,7 @@ begin
       success_only = true
     end
 
-    o.on(--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
+    o.on('--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
       opts[:cert] = cert
     end
 
@@ -122,7 +122,7 @@ begin
     end
 
     o.on('-m', '--method METHOD', 'Save output to file passed') do |method_name|
-      method = m
+      method = method_name
     end
 
     o.on('-o', '--output FILE', 'Save output to file passed') do |file|
