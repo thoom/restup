@@ -5,7 +5,7 @@ $LOAD_PATH.unshift(File.expand_path(File.dirname(File.dirname(__FILE__))) + '/li
 require 'constants'
 require 'config'
 require 'output_builder'
-require 'rest_client'
+require 'rest_up'
 
 require 'optparse'
 require 'json'
@@ -42,7 +42,7 @@ begin
   colors[:info]    = :yellow
   colors[:error]   = :red
 
-  config_file = '.restclient.yml'
+  config_file = '.restup.yml'
 
   begin
     config = Thoom::YamlConfig.new config_file, :default
@@ -67,9 +67,10 @@ begin
 
   headers = {}
   opts    = {}
+  method  = 'GET'
 
   parser = OptionParser.new do |o|
-    o.banner = 'Usage: restclient METHOD ENDPOINT [options]'
+    o.banner = 'Usage: restup [options] ENDPOINT'
     o.on('--concise', 'Disables verbose output') do
       verbose = false
     end
@@ -93,7 +94,7 @@ begin
       success_only = true
     end
 
-    o.on('-c', '--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
+    o.on(--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
       opts[:cert] = cert
     end
 
@@ -118,6 +119,10 @@ begin
         headers['content-type'] = :json
         headers['accept']       = :json
       end
+    end
+
+    o.on('-m', '--method METHOD', 'Save output to file passed') do |method_name|
+      method = m
     end
 
     o.on('-o', '--output FILE', 'Save output to file passed') do |file|
@@ -163,9 +168,9 @@ begin
   config.set(:user, opts[:user]) if opts.key? :user
   config.set(:pass, opts[:pass]) if opts.key? :pass
 
-  client = Thoom::RestClient.new config
-  client.method = ARGV.shift
-  client.endpoint = ARGV.shift
+  client = Thoom::RestUp.new config
+  client.method = method
+  client.endpoint = ARGV.pop
   client.cert = opts[:cert] if opts.key? :cert
 
   headers_default = config.get(:headers, {})

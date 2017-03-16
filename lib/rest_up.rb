@@ -8,7 +8,7 @@ require 'constants'
 
 module Thoom
   # General Error message returned by the class
-  class RestClientError < RuntimeError
+  class RestUpError < RuntimeError
     attr_reader :message
 
     def initialize(message)
@@ -17,7 +17,7 @@ module Thoom
   end
 
   # Makes the request
-  class RestClient
+  class RestUp
     attr_accessor :method, :endpoint, :headers, :data, :cert
     attr_reader :log
 
@@ -32,21 +32,21 @@ module Thoom
     def request
       m = method.downcase
 
-      raise RestClientError, '":xmethods:" should be an array' unless xmethods.respond_to? :include?
-      raise RestClientError, 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
+      raise RestUpError, '":xmethods:" should be an array' unless xmethods.respond_to? :include?
+      raise RestUpError, 'Invalid Method' unless (@standard_methods.include? m) || (xmethods.include? m)
 
       if xmethods.include? m
         headers['x-http-method-override'] = m.upcase
         m = 'post'
       end
 
-      raise RestClientError, 'Invalid URL' unless uri.respond_to?(:request_uri)
+      raise RestUpError, 'Invalid URL' unless uri.respond_to?(:request_uri)
 
       request = Net::HTTP.const_get(m.capitalize).new uri.request_uri
 
       request.basic_auth(user, pass) unless user.to_s.empty? || pass.to_s.empty?
 
-      request['User-Agent']  = 'Thoom::RestClient/' + Constants::VERSION
+      request['User-Agent']  = 'Thoom::RestUp/' + Constants::VERSION
       request.content_length = 0
 
       # This just sets a default to JSON

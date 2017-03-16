@@ -16,9 +16,9 @@ module Thoom
     def title(centered = true)
       return if title_output
 
-      client_copy = "Thoom::RestClient v#{Thoom::Constants::VERSION}"
+      client_copy = "Thoom::RestUp v#{Thoom::Constants::VERSION}"
       author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
-      link_copy   = '@link http://github.com/thoom/restclient'
+      link_copy   = '@link http://github.com/thoom/restup'
 
       if centered
         max         = [client_copy.length, author_copy.length, link_copy.length].max + 2
@@ -42,10 +42,10 @@ module Thoom
 
     def help(config_file, opts)
       title
-      section 'How to use the RestClient'
+      section 'How to use RestUp'
 
       puts <<TEXT
-The RestClient works out of the box with APIs that use Basic Authentication (though this is not required).
+RestUp works out of the box with APIs that use Basic Authentication (though this is not required).
 To use other forms of authentication, custom headers can either be passed with each request
 or stored in the config file as described below.
 
@@ -65,7 +65,7 @@ The client uses two different methods to find the YAML file #{Paint[config_file,
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
-This makes it possible to use the restclient to connect to different APIs simply by changing folders.
+This makes it possible to use restup to connect to different APIs simply by changing folders.
 
 KEY          DESC
 ----         -----
@@ -103,10 +103,10 @@ url: http://example.com/api
 user: myname
 pass: P@ssWord
 
-#{Paint['restclient get /hello/world -j', colors[:help_sample_request]]}
+#{Paint['restup -j /hello/world', colors[:help_sample_request]]}
 
 To use without the config:
-#{Paint['restclient get http://example.com/api/hello/world -u myname -p P@ssWord -j', colors[:help_sample_request]]}
+#{Paint['restup -u myname -p P@ssWord -j http://example.com/api/hello/world', colors[:help_sample_request]]}
 
 Submits a GET request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header using the
 user and pass values in the config.
@@ -125,7 +125,7 @@ pass: P@ssWord
 headers:
   X-Custom-Id: abc12345
 
-#{Paint['restclient post /hello/world -j < salutation.json', colors[:help_sample_request]]}
+#{Paint['restup -m post -j /hello/world < salutation.json', colors[:help_sample_request]]}
 
 Submits a POST request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header
 using the user and pass values in the config. It imports the salutation.json and passes it to the API as application/json
@@ -285,7 +285,7 @@ INFO
       config_user = nil if config_user.empty?
       config_pass = nil if config_pass.empty?
 
-      File.open('.restclient.yml', 'w') do |f|
+      File.open('.restup.yml', 'w') do |f|
         f.write({ 'url' => config_url, 'user' => config_user, 'pass' => config_pass }.to_yaml)
       end
 

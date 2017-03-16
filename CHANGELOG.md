@@ -1,4 +1,6 @@
 ### Version Changelog
+1.0.0 Fixes Github issues [#30](https://github.com/thoom/restclient/issues/30) by renaming restclient to restup.
+
 0.14.3 Fixes Github issues [#21](https://github.com/thoom/restclient/issues/21) and [#26](https://github.com/thoom/restclient/issues/26). 
 You can use YAML now instead of JSON for JSON requests. Since JSON is a subset of YAML, this is not a breaking change.
 

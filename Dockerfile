@@ -5,5 +5,5 @@ COPY ["Gemfile", "Gemfile.lock", "/src/"]
 
 RUN cd /src && bundle install
 
-WORKDIR /restclient
-ENTRYPOINT ["restclient"]
+WORKDIR /restup
+ENTRYPOINT ["restup"]
