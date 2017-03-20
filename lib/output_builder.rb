@@ -7,7 +7,7 @@ require 'rexml/formatters/pretty'
 
 module Thoom
   class OutputBuilder
-    attr_accessor :colors, :use_title, :response_time
+    attr_accessor :colors, :title_output, :response_time
 
     def initialize(colors)
       @colors = colors
@@ -15,7 +15,7 @@ module Thoom
     end
 
     def title(centered = true)
-      return if use_title
+      return if title_output
 
       client_copy = "Thoom::RestUp v#{Thoom::Constants::VERSION}"
       author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
@@ -28,7 +28,7 @@ module Thoom
         link_copy   = link_copy.center(max, ' ')
       end
 
-      @use_title = true
+      @title_output = true
       puts "\n",
            Paint[client_copy, colors[:title_color], colors[:title_bgcolor]],
            Paint[author_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]],
@@ -228,7 +228,6 @@ TEXT
                end
             puts Paint[body, response_color]
           rescue EncodingError => e
-            puts e.backtrace
             puts Paint["RESPONSE contains non-UTF-8 data, so it's not echoed here.", colors[:info]]
           end
       end

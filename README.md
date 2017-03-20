@@ -69,7 +69,7 @@ The client uses two different methods to find the YAML file `.restup.yml`. It wi
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
-This makes it possible to use the restup to connect to different APIs simply by changing
+This makes it possible to use restup to connect to different APIs simply by changing
 folders.
 
     KEY          DESC

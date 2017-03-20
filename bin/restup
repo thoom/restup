@@ -210,11 +210,12 @@ begin
 
   output_builder.quit(response) unless response.respond_to? :each_header
 
-  if opts[:display] == :response_code_only
+  case opts[:display]
+  when :response_code_only
     puts response.code
-  elsif opts[:display] == :success_only
+  when :success_only
     puts response.code.to_i < 400
-  elsif opts[:display] == :response_only
+  when :response_only
     puts response.body
   else
     output_builder.response(response, opts[:display] == :verbose)
