@@ -90,11 +90,8 @@ flags:      Default command line options
             Default: response_only
 
 headers:    Hash of default headers. Useful for custom headers or headers used in every request.
-            The keys for this hash are strings, not symbols like the other keys
-
 timeout:    The number of seconds to wait for a response before timing out. Default: 300
-
-tls_verify: When using TLS, the verify mode to use.  Values: true, false.  Default: true
+tls_verify: Whether or not to verify TLS (SSL) certificates.  Values: true, false.  Default: true
 
 xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
             API must support X-HTTP-Method-Override.

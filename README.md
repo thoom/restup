@@ -31,25 +31,26 @@ To install:
 
 To run:
 
-    docker run --rm -v $PWD:/usr/src/restup thoom/restup
+    docker run --rm -v $PWD:/restup thoom/restup
 
 A sample shell script `restup`:
 
     #!/bin/bash
-    docker run --rm -v $PWD:/usr/src/restup thoom/restup "@"
+    docker run --rm -v $PWD:/restup thoom/restup "@"
 
 Console
 -------
 
     Usage: restclient [options] ENDPOINT
-            --concise                    Disables verbose output
+            --concise                    Simplified response view
             --content-disposition        For responses with a filename in the Content Disposition, save the response using that filename
             --form                       Converts JSON-formatted input and encode it as x-www-form-urlencoded
             --response-only              Only outputs the response body
             --response-code-only         Only outputs the response code
             --success-only               Only outputs whether or not the request was successful
             --cert CERTFILE              Imports cert for Client-Authentication endpoints
-        -c, --config FILE                Config file to use. Defaults to .restup.yml                                                                 -e, --env ENVIRONMENT            Sets YAML environment for the request
+        -c, --config FILE                Config file to use. Defaults to .restup.yml
+        -e, --env ENVIRONMENT            Sets YAML environment for the request
         -h, --header HEADER              Sets arbitrary header passed in format "HEADER: VALUE"
         -j, --json [c|a]                 Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)
         -m, --method                     The HTTP method to use (defaults to GET)
@@ -57,9 +58,9 @@ Console
         -p, --password PASSWORD          Password for Basic Authentication
         -u, --username USERNAME          Username for Basic Authentication
         -x, --xml [c|a]                  Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)
-            --verbose                    Provides a nice UI for your API responses
+            --verbose                    Expanded response view
             --version                    Shows client version
-            --help [details]             Shows this message
+            --help [details]             Shows this help dialog
 
 YAML config
 -----------
@@ -93,11 +94,8 @@ folders.
                 Default: response_only
 
     headers:    Hash of default headers. Useful for custom headers or headers used in every request.
-                The keys for this hash are strings, not symbols like the other keys
-
     timeout:    The number of seconds to wait for a response before timing out. Default: 300
-
-    tls_verify: When using TLS, the verify mode to use.  Values: true, false.  Default: true
+    tls_verify: Whether or not to verify TLS (SSL) certificates.  Values: true, false.  Default: true
 
     xmethods:   Array of nonstandard methods that are accepted by the API. To use these methods the
                 API must support X-HTTP-Method-Override.
@@ -124,8 +122,8 @@ To use without the config:
 Submits a GET request to `http://example/api/hello/world` with Basic Auth header using the
 user and pass values in the config.
 
-It would return JSON values. If successful, the JSON would be parsed and highlighted in __:colors::success:__. If
-the an error was returned (an HTTP response code >= 400), the body would be in __:colors::error:__.
+It would return JSON values. If successful, the JSON would be parsed and highlighted in __colors['success']__. If
+the an error was returned (an HTTP response code >= 400), the body would be in __colors['error']__.
 
 ### POST Request
 
@@ -149,8 +147,8 @@ Submits a POST request to `http://example/api/hello/world` with Basic Auth heade
 user and pass values in the config. It imports the salutation.json and passes it to the API as application/json
 content type. It would also set the `X-Custom-Id` header with every request.
 
-It would return JSON values. If successful, the JSON would be parsed and highlighted in __:colors::success:__. If
-the an error was returned (an HTTP response code >= 400), the body would be in __:colors::error:__.
+It would return JSON values. If successful, the JSON would be parsed and highlighted in __colors['success']__. If
+the an error was returned (an HTTP response code >= 400), the body would be in __colors['error']__.
 
 
 Migration From RestClient

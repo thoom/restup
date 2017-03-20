@@ -1,11 +1,13 @@
 source 'https://rubygems.org'
 
-#gem 'restup'
-
 gem 'paint', '~>2.0'
 
-group 'development' do
+group :development do
   gem 'byebug'
+  gem 'travis'
+end
+
+group :development, :test do
   gem 'minitest'
   gem 'rake'
   gem 'webmock'

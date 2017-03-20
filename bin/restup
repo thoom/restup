@@ -36,7 +36,7 @@ opts_builder = nil
 
 parser = OptionParser.new do |o|
   o.banner = 'Usage: restup [options] ENDPOINT'
-  o.on('--concise', 'Disables verbose output') do
+  o.on('--concise', 'Simplified response view') do
     opts[:display] = :concise
   end
 
@@ -59,7 +59,7 @@ parser = OptionParser.new do |o|
     opts[:display] = :success_only
   end
 
-  o.on('--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
+  o.on('--cert FILE', 'Imports cert for Client-Authentication endpoints') do |cert|
     opts[:cert] = cert
   end
 
@@ -88,7 +88,7 @@ parser = OptionParser.new do |o|
     end
   end
 
-  o.on('-m', '--method METHOD', 'Save output to file passed') do |method_name|
+  o.on('-m', '--method METHOD', 'The HTTP method to use') do |method_name|
     opts[:method] = method_name
   end
 
@@ -116,7 +116,7 @@ parser = OptionParser.new do |o|
     end
   end
 
-  o.on('--verbose', 'Provides a nice UI for your API responses') do
+  o.on('--verbose', 'Expanded response view') do
     opts[:display] = :verbose
   end
 
