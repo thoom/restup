@@ -213,21 +213,21 @@ TEXT
       else
         body = response.body
         begin
-            body.encode!('ASCII-8BIT') if body.encoding.to_s != 'ASCII-8BIT'
+          body.encode!('ASCII-8BIT') if body.encoding.to_s != 'ASCII-8BIT'
 
-            body = if response['content-type'].nil?
-                     body
-                   elsif response['content-type'].include? 'json'
-                     JSON.pretty_unparse(JSON.parse(body))
-                   elsif response['content-type'].include? 'xml'
-                     xp(body)
-                   else
-                     body
-               end
-            puts Paint[body, response_color]
-          rescue EncodingError => e
-            puts Paint["RESPONSE contains non-UTF-8 data, so it's not echoed here.", colors[:info]]
-          end
+          body = if response['content-type'].nil?
+                   body
+                 elsif response['content-type'].include? 'json'
+                   JSON.pretty_unparse(JSON.parse(body))
+                 elsif response['content-type'].include? 'xml'
+                   xp(body)
+                 else
+                   body
+             end
+          puts Paint[body, response_color]
+        rescue EncodingError
+          puts Paint["RESPONSE contains non-UTF-8 data, so it's not echoed here.", colors[:info]]
+        end
       end
     end
 

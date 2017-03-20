@@ -11,6 +11,6 @@ class TestOutputBuilder < Minitest::Test
   
   def test_default
     output = Thoom::DefaultOutputBuilder.new
-    assert_equal '003366', output.colors[:title_color]
+    assert_equal 16, output.colors.length
   end
 end
