@@ -262,23 +262,23 @@ TEXT
   class DefaultOutputBuilder < OutputBuilder
     def initialize
       colors = {
-        title_color: 'c2660f',
+        title_color: '4D7326',
         title_bgcolor: :white,
 
         subtitle_color: :white,
-        subtitle_bgcolor: 'c2660f',
+        subtitle_bgcolor: '4D7326',
 
         help_filename: :yellow,
         help_sample_request: :magenta,
         help_sample_url: :blue,
 
         request_method: :cyan,
-        request_path: '0f6bc2',
-        request_port_http: '0f6bc2',
-        request_port_tls: '660fc2',
+        request_path: '813b5e',
+        request_port_http: '813b5e',
+        request_port_tls: '264d73',
         request_endpoint: :yellow,
 
-        success: '0fc266',
+        success: '277326',
         warning: :yellow,
         info: :yellow,
         error: 'c20f12'
