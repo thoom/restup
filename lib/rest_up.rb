@@ -60,7 +60,7 @@ module Thoom
 
       request
     end
-    
+
     def http
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = @config.get(:timeout, 300)
@@ -114,7 +114,7 @@ module Thoom
         http.cert = OpenSSL::X509::Certificate.new pem
         http.key  = OpenSSL::PKey::RSA.new pem
       rescue OpenSSL::OpenSSLError
-        raise RestUpError.new 'Invalid client certificate'
+        raise RestUpError, 'Invalid client certificate'
       end
     end
 
@@ -139,13 +139,13 @@ module Thoom
 
       headers.each { |key, val| request[key.to_s.strip] = val.strip }
     end
-    
+
     def xmethods
       return @xmethods if @xmethods
 
       xmethods = @config.get(:xmethods, [])
       unless xmethods.respond_to? :map
-        raise RestUpError.new 'Invalid xmethods configuration'
+        raise RestUpError, 'Invalid xmethods configuration'
       end
 
       @xmethods = xmethods.map(&:downcase)

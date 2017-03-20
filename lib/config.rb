@@ -62,7 +62,7 @@ module Thoom
     include Config
 
     def initialize(filename, env = :default)
-      file = (File.exist? filename) ? filename : File.expand_path("~/#{filename}")
+      file = File.exist?(filename) ? filename : File.expand_path("~/#{filename}")
       raise ConfigFileError, "Configuration file #{filename} not found" unless File.exist? file
 
       yaml = YAML.load_file file

@@ -11,177 +11,166 @@ require 'optparse'
 require 'json'
 require 'yaml'
 
+require 'byebug' if ENV['DEBUG']
+
+if ARGV.empty?
+  Thoom::SimpleOutputBuilder.new.quit(
+    'Missing required options. Use "--help" OR "--help details" for more information', false
+  )
+end
+
+DEFAULT_CONFIG = '.restup.yml'.freeze
+
+opts = {
+  cert: '',
+  config: DEFAULT_CONFIG,
+  content_disposition: false,
+  display: :default,
+  env: :default,
+  endpoint: ARGV.last,
+  form: false,
+  headers: {},
+  help: false,
+  method: 'get'
+}
+
+opts_builder = nil
+
+parser = OptionParser.new do |o|
+  o.banner = 'Usage: restup [options] ENDPOINT'
+  o.on('--concise', 'Disables verbose output') do
+    opts[:display] = :concise
+  end
+
+  o.on('--content-disposition', 'For responses with a filename in the Content Disposition, save the response using that filename') do
+    opts[:content_disposition] = true
+  end
+
+  o.on('--form', 'Converts JSON-formatted input and encode it as x-www-form-urlencoded') do
+    opts[:form] = true
+  end
+
+  o.on('--response-only', 'Only outputs the response body') do
+    opts[:display] = :response_only
+  end
+  o.on('--response-code-only', 'Only outputs the response code') do
+    opts[:display] = :response_code_only
+  end
+
+  o.on('--success-only', 'Only outputs whether or not the request was successful') do
+    opts[:display] = :success_only
+  end
+
+  o.on('--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
+    opts[:cert] = cert
+  end
+
+  o.on('-c', '--config FILE', "Config file to use. Defaults to #{DEFAULT_CONFIG}") do |config|
+    opts[:config] = config
+  end
+
+  o.on('-e', '--env ENVIRONMENT', 'Sets YAML environment for the request') do |_e|
+    opts[:env] = env.to_sym
+  end
+
+  o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
+    key, val = header.split(':')
+    opts[:headers][key.downcase.strip] = val.strip
+  end
+
+  o.on('-j', '--json [c|a]', 'Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)') do |json|
+    case json
+    when 'c', 'content-type'
+      opts[:headers]['content-type'] = :json
+    when 'a', 'accept'
+      opts[:headers]['accept'] = :json
+    else
+      opts[:headers]['content-type'] = :json
+      opts[:headers]['accept'] = :json
+    end
+  end
+
+  o.on('-m', '--method METHOD', 'Save output to file passed') do |method_name|
+    opts[:method] = method_name
+  end
+
+  o.on('-o', '--output FILE', 'Save output to file passed') do |file|
+    opts[:output_file] = file
+  end
+
+  o.on('-p', '--password PASSWORD', 'Password for Basic Authentication') do |password|
+    opts[:pass] = password
+  end
+
+  o.on('-u', '--username USERNAME', 'Username for Basic Authentication') do |username|
+    opts[:user] = username
+  end
+
+  o.on('-x', '--xml [c|a]', 'Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)') do |xml|
+    case xml
+    when 'c', 'content-type'
+      opts[:headers]['content-type'] = :xml
+    when 'a', 'accept'
+      opts[:headers]['accept'] = :xml
+    else
+      opts[:headers]['content-type'] = :xml
+      opts[:headers]['accept'] = :xml
+    end
+  end
+
+  o.on('--verbose', 'Provides a nice UI for your API responses') do
+    opts[:display] = :verbose
+  end
+
+  o.on_tail('--version', 'Shows client version') do
+    Thoom::SimpleOutputBuilder.new.quit('', false)
+  end
+
+  o.on_tail('--help [details]', 'Shows this message') do |details|
+    opts_builder = o
+    opts[:help] = details == 'details' ? :details : :simple
+  end
+end
+
 begin
-  # set some default colors
-  default_colors = { subtitle_color: :default, subtitle_bgcolor: :default, title_color: :default, title_bgcolor: :default }
-
-  output_default = Thoom::OutputBuilder.new default_colors
-  output_builder = output_default
-
-  output_default.quit_with_title('Missing required options. Use "--help" OR "--help details" for more information', false) if ARGV.empty?
-
-  colors                 = {}
-  colors[:title_color]   = '003366'
-  colors[:title_bgcolor] = :white
-
-  colors[:subtitle_color]   = :white
-  colors[:subtitle_bgcolor] = '003366'
-
-  colors[:help_filename]       = :yellow
-  colors[:help_sample_request] = :magenta
-  colors[:help_sample_url]     = :blue
-
-  colors[:request_method]    = :cyan
-  colors[:request_path]      = '336699'
-  colors[:request_port_http] = '336699'
-  colors[:request_port_tls]  = '339966'
-  colors[:request_endpoint]  = :yellow
-
-  colors[:success] = :green
-  colors[:warning] = :yellow
-  colors[:info]    = :yellow
-  colors[:error]   = :red
-
-  config_file = '.restup.yml'
+  parser.parse! ARGV
+  ARGV.clear
 
   begin
-    config = Thoom::YamlConfig.new config_file, :default
+    config = Thoom::YamlConfig.new opts[:config], opts[:env]
   rescue Thoom::ConfigFileError
     config = Thoom::HashConfig.new
   end
 
-  output_builder = Thoom::OutputBuilder.new colors
-
+  output_builder = Thoom::DefaultOutputBuilder.new
   new_colors = config.get(:colors, yolo: :cyan)
 
-  output_builder.quit(Paint['Empty color: hash found in YAML configuration', colors[:error]]) if new_colors.nil? || new_colors.empty?
-  colors.merge!(new_colors)
-
-  verbose             = true
-  filename            = nil
-  output              = nil
-  content_disposition = false
-  response_only       = false
-  response_code_only  = false
-  success_only        = false
-
-  headers = {}
-  opts    = {}
-  method  = 'GET'
-
-  parser = OptionParser.new do |o|
-    o.banner = 'Usage: restup [options] ENDPOINT'
-    o.on('--concise', 'Disables verbose output') do
-      verbose = false
-    end
-
-    o.on('--content-disposition', 'For responses with a filename in the Content Disposition, save the response using that filename') do
-      content_disposition = true
-    end
-
-    o.on('--form', 'Converts JSON-formatted input and encode it as x-www-form-urlencoded') do
-      headers['content-type'] = 'application/x-www-form-urlencoded'
-    end
-
-    o.on('--response-only', 'Only outputs the response body') do
-      response_only = true
-    end
-    o.on('--response-code-only', 'Only outputs the response code') do
-      response_code_only = true
-    end
-
-    o.on('--success-only', 'Only outputs whether or not the request was successful') do
-      success_only = true
-    end
-
-    o.on('--cert CERTFILE', 'Imports cert for Client-Authentication endpoints') do |cert|
-      opts[:cert] = cert
-    end
-
-    o.on('-e', '--env ENVIRONMENT', 'Sets YAML environment for the request') do |e|
-      config.env = e.to_sym
-      env_colors = config.get(:colors, {})
-      colors.merge!(env_colors)
-    end
-
-    o.on('-h', '--header HEADER', 'Sets arbitrary header passed in format "HEADER: VALUE"') do |header|
-      key, val = header.split(':')
-      headers[key.strip] = val.strip
-    end
-
-    o.on('-j', '--json [c|a]', 'Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)') do |json|
-      case json
-      when 'c', 'content-type'
-        headers['content-type'] = :json
-      when 'a', 'accept'
-        headers['accept'] = :json
-      else
-        headers['content-type'] = :json
-        headers['accept']       = :json
-      end
-    end
-
-    o.on('-m', '--method METHOD', 'Save output to file passed') do |method_name|
-      method = method_name
-    end
-
-    o.on('-o', '--output FILE', 'Save output to file passed') do |file|
-      output = file
-    end
-
-    o.on('-p', '--password PASSWORD', 'Password for Basic Authentication') do |password|
-      opts[:pass] = password
-    end
-
-    o.on('-u', '--username USERNAME', 'Username for Basic Authentication') do |username|
-      opts[:user] = username
-    end
-
-    o.on('-x', '--xml [c|a]', 'Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)') do |xml|
-      case xml
-      when 'c', 'content-type'
-        headers['content-type'] = :xml
-      when 'a', 'accept'
-        headers['accept'] = :xml
-      else
-        headers['content-type'] = :xml
-        headers['accept']       = :xml
-      end
-    end
-
-    o.on_tail('--version', 'Shows client version') do
-      output_default.quit_with_title('', false)
-    end
-
-    o.on_tail('--help [details]', 'Shows this message') do |details|
-      if details == 'details'
-        output_builder.help(config_file, o)
-      else
-        output_builder.quit(o)
-      end
-    end
+  if new_colors.nil? || new_colors.empty?
+    output_builder.quit(Paint['Empty color: hash found in YAML configuration', output_builder.colors[:error]])
   end
 
-  parser.parse! ARGV
-  output_builder.quit(Paint['Missing required METHOD and/or ENDPOINT', colors[:error]]) if ARGV.length < 2
+  output_builder.colors.merge!(new_colors)
+
+  if opts[:help] == :details
+    output_builder.help(DEFAULT_CONFIG, opts_builder)
+  elsif opts[:help] == :simple
+    output_builder.quit(opts_builder)
+  end
+
+  if opts[:display] == :default
+    display = config.get(:flags, {})[:display]
+    opts[:display] = display.nil? ? :response_only : display.to_sym
+  end
 
   config.set(:user, opts[:user]) if opts.key? :user
   config.set(:pass, opts[:pass]) if opts.key? :pass
 
   client = Thoom::RestUp.new config
-  client.method = method
-  client.endpoint = ARGV.pop
-  
-  if opts.key? :cert
-    f = File.read opts[:cert]
-    
-    client.cert = f
-  end
-  
-  headers_default = config.get(:headers, {})
-  headers_default.each { |key, val| client.headers[key] = val } if headers_default.respond_to? :each
+  client.method = opts[:method]
+  client.endpoint = opts[:endpoint]
+  client.cert = File.read(opts[:cert]) unless opts[:cert].empty?
 
-  headers.each do |key, val|
+  opts[:headers].each do |key, val|
     if %w(content-type accept).include? key
       val = config.get(:json, Thoom::Constants::MIME_JSON) if val == :json
       val = config.get(:xml, Thoom::Constants::MIME_XML) if val == :xml
@@ -193,25 +182,26 @@ begin
     data = ARGF.read
 
     if !client.headers.key?('content-type') || client.headers['content-type'].include?('json')
-      data = YAML.load(data).to_json
+      data = YAML.safe_load(data).to_json
     end
-    
-    if request.content_type == 'application/x-www-form-urlencoded'
-        yaml = YAML.load(data)
-        data = URI.encode_www_form(yaml)
+
+    if opts[:form]
+      client.headers['content-type'] = 'x-www-form-urlencoded'
+      yaml = YAML.safe_load(data)
+      data = URI.encode_www_form(yaml)
     end
 
     client.data = data
   end
 
   request = client.request
-  unless response_code_only || success_only || response_only
-    output_builder.request(client, request, filename, verbose)
+  if %i(concise verbose).include? opts[:display]
+    output_builder.request(client, request, opts[:display] == :verbose)
   end
-  
+
   # This just sets a default to JSON
-  if %w(post put patch).include?(method.downcase) && (request.content_type.nil? || request.content_type.empty?)
-    request.content_type = config.get(:json, Constants::MIME_JSON)
+  if %w(post put patch).include?(opts[:method].downcase) && (request.content_type.nil? || request.content_type.empty?)
+    request.content_type = config.get(:json, Thoom::Constants::MIME_JSON)
   end
 
   before = Time.now
@@ -220,21 +210,22 @@ begin
 
   output_builder.quit(response) unless response.respond_to? :each_header
 
-  if response_code_only
+  if opts[:display] == :response_code_only
     puts response.code
-  elsif success_only
+  elsif opts[:display] == :success_only
     puts response.code.to_i < 400
-  elsif response_only
+  elsif opts[:display] == :response_only
     puts response.body
   else
-    output_builder.response(response, verbose)
-    output_builder.save_response(response, content_disposition, output)
+    output_builder.response(response, opts[:display] == :verbose)
+    output_builder.save_response(response, opts[:content_disposition], opts[:output_file])
     puts "\n"
   end
 rescue Timeout::Error
-  output_builder.quit Paint['Request timed out', colors[:error]]
+  output_builder.quit Paint['Request timed out', output_builder.colors[:error]]
 rescue SystemExit
   puts "\n"
-rescue Exception => e
-  output_builder.quit "#{Paint[e.message.capitalize, colors[:error]]}\n\n"
+rescue StandardError => e
+  output_builder = output_builder.nil? ? Thoom::DefaultOutputBuilder.new : output_builder
+  output_builder.quit "#{Paint[e.message.capitalize, output_builder.colors[:error]]}\n\n"
 end

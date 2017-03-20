@@ -2,6 +2,8 @@ source 'https://rubygems.org'
 
 #gem 'restup'
 
+gem 'paint'
+
 group 'development' do
   gem 'byebug'
   gem 'minitest'

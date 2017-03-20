@@ -50,7 +50,7 @@ Console
             --response-code-only         Only outputs the response code
             --success-only               Only outputs whether or not the request was successful
             --cert CERTFILE              Imports cert for Client-Authentication endpoints
-        -e, --env ENVIRONMENT            Sets YAML environment for the request
+        -c, --config FILE                Config file to use. Defaults to .restup.yml                                                                 -e, --env ENVIRONMENT            Sets YAML environment for the request
         -h, --header HEADER              Sets arbitrary header passed in format "HEADER: VALUE"
         -j, --json [c|a]                 Sets the Content-Type and/or Accept Headers to use JSON mime types (i.e. -ja)
         -m, --method                     The HTTP method to use (defaults to GET)
@@ -58,6 +58,7 @@ Console
         -p, --password PASSWORD          Password for Basic Authentication
         -u, --username USERNAME          Username for Basic Authentication
         -x, --xml [c|a]                  Sets the Content-Type and/or Accept Headers to use XML mime types (i.e. -xc)
+            --verbose                    Provides a nice UI for your API responses
             --version                    Shows client version
             --help [details]             Shows this message
 
@@ -85,6 +86,11 @@ folders.
       warning:  Color to highlight warning messages.     Default: :yellow
       info:     Color to highlight info messages.        Default: :yellow
       error:    Color to highlight error messages.       Default :red
+      
+    flags:      Default command line options
+      display:  What to display by default. 
+                Values: concise, response_only, response_code_only, succcess_only, verbose
+                Default: response_only
 
     headers:    Hash of default headers. Useful for custom headers or headers used in every request.
                 The keys for this hash are strings, not symbols like the other keys
@@ -156,6 +162,7 @@ To migrate:
 2. The CLI format changed from `restclient METHOD ENDPOINT [options]` to `restup [options] ENDPOINT`.
 3. The `-c` option is no longer available. You must use `--cert` instead.
 4. The `-m` option was created for specifying methods. So `restup -m POST ENDPOINT` instead of `restclient POST ENDPOINT`.
+5. Add `flags: { display: verbose }` to return to the previous API output.
 
 License
 -------

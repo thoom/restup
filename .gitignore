@@ -1,5 +1,5 @@
 *.gem
 .byebug_history
-.restup.yml
+.restup*.yml
 demo.json
 demo.yml

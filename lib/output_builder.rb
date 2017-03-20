@@ -7,14 +7,15 @@ require 'rexml/formatters/pretty'
 
 module Thoom
   class OutputBuilder
-    attr_accessor :colors, :title_output, :response_time
+    attr_accessor :colors, :use_title, :response_time
 
     def initialize(colors)
       @colors = colors
+      @output = ''
     end
 
     def title(centered = true)
-      return if title_output
+      return if use_title
 
       client_copy = "Thoom::RestUp v#{Thoom::Constants::VERSION}"
       author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
@@ -27,7 +28,7 @@ module Thoom
         link_copy   = link_copy.center(max, ' ')
       end
 
-      @title_output = true
+      @use_title = true
       puts "\n",
            Paint[client_copy, colors[:title_color], colors[:title_bgcolor]],
            Paint[author_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]],
@@ -81,6 +82,11 @@ colors:     Hash of default color values
   warning:  Color to highlight warning messages.     Default: :yellow
   info:     Color to highlight info messages.        Default: :yellow
   error:    Color to highlight error messages.       Default :red
+
+flags:      Default command line options
+  display:  What to display by default.
+            Values: concise, response_only, response_code_only, succcess_only, verbose
+            Default: response_only
 
 headers:    Hash of default headers. Useful for custom headers or headers used in every request.
             The keys for this hash are strings, not symbols like the other keys
@@ -152,7 +158,7 @@ TEXT
       out
     end
 
-    def request(client, request, filename, verbose)
+    def request(client, request, verbose)
       path  = client.uri.path
       query = ''
       query += '?' + client.uri.query if client.uri.query
@@ -178,10 +184,10 @@ TEXT
         if client.data
           header 'BODY'
 
-          if client.data.ascii_only?
-            puts client.data
-          else
-            puts "File: '#{filename}' posted, but contains non-ASCII data, so it's not echoed here."
+          begin
+            puts %w(UTF-8 ASCII-8BIT).include?(client.data.encoding.to_s) ? client.data : client.data.encode('ASCII-8BIT')
+          rescue EncodingError
+            puts "Data posted, but contains non-UTF-8 data, so it's not echoed here."
           end
         end
       else
@@ -206,25 +212,31 @@ TEXT
 
       if !response.body || response.body.empty?
         puts Paint['NONE', colors[:info]]
-      elsif !response.body.ascii_only?
-        puts Paint["RESPONSE contains non-ASCII data, so it's not echoed here.", colors[:info]]
       else
-        body = if response['content-type'].nil?
-                 response.body
-               elsif response['content-type'].include? 'json'
-                 JSON.pretty_unparse(JSON.parse(response.body))
-               elsif response['content-type'].include? 'xml'
-                 xp(response.body)
-               else
-                 response.body
+        body = response.body
+        begin
+            body.encode!('ASCII-8BIT') if body.encoding.to_s != 'ASCII-8BIT'
+
+            body = if response['content-type'].nil?
+                     body
+                   elsif response['content-type'].include? 'json'
+                     JSON.pretty_unparse(JSON.parse(body))
+                   elsif response['content-type'].include? 'xml'
+                     xp(body)
+                   else
+                     body
                end
-        puts Paint[body, response_color]
+            puts Paint[body, response_color]
+          rescue EncodingError => e
+            puts e.backtrace
+            puts Paint["RESPONSE contains non-UTF-8 data, so it's not echoed here.", colors[:info]]
+          end
       end
     end
 
     def save_response(response, content_disposition, output)
       if content_disposition && output.nil? && response.to_hash.key?('content-disposition')
-        cd     = response['content-disposition']
+        cd = response['content-disposition']
         output = cd[cd.index('filename=') + 9..-1]
       end
 
@@ -239,16 +251,52 @@ TEXT
       end
     end
 
-    def quit_with_title(content, centered = true)
+    def quit(content, centered = true)
       title(centered)
       puts "\n#{content}"
       exit
     end
+  end
 
-    def quit(content)
-      title
-      puts "\n#{content}"
-      exit
+  # Sets up the default color set
+  class DefaultOutputBuilder < OutputBuilder
+    def initialize
+      colors = {
+        title_color: '003366',
+        title_bgcolor: :white,
+
+        subtitle_color: :white,
+        subtitle_bgcolor: '003366',
+
+        help_filename: :yellow,
+        help_sample_request: :magenta,
+        help_sample_url: :blue,
+
+        request_method: :cyan,
+        request_path: '336699',
+        request_port_http: '336699',
+        request_port_tls: '339966',
+        request_endpoint: :yellow,
+
+        success: :green,
+        warning: :yellow,
+        info: :yellow,
+        error: :red
+      }
+      super(colors)
+    end
+  end
+
+  # Outputs just the basic default colors
+  class SimpleOutputBuilder < OutputBuilder
+    def initialize
+      colors = {
+        subtitle_color: :default,
+        subtitle_bgcolor: :default,
+        title_color: :default,
+        title_bgcolor: :default
+      }
+      super(colors)
     end
   end
 end
