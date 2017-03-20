@@ -1,5 +1,6 @@
 Thoom::RestUp
 =============
+[![Gem Version](https://badge.fury.io/rb/restup.svg)](https://badge.fury.io/rb/restup) [![Build Status](https://travis-ci.org/thoom/restup.svg?branch=master)](https://travis-ci.org/thoom/restup)
 
 After many years in beta, RestClient is now RestUp version 1. 
 It's mainly the same client as before, but some breaking changes have been made based on 
