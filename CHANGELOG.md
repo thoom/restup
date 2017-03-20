@@ -1,7 +1,7 @@
 ### Version Changelog
 1.1.0 Updated to use [Paint v. 2.0](https://github.com/janlelis/paint) gem.
 
-1.0.1 Fixes issue [#33](https://github.com/thoom/restclient/issues/30).
+1.0.1 Fixes issue [#33](https://github.com/thoom/restclient/issues/33).
 
 1.0.0 RestClient => RestUp. _Finally_ out of beta.
  - Fixes Github issue [#30](https://github.com/thoom/restclient/issues/30) by renaming RestClient to RestUp.
