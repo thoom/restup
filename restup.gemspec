@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = %w( README.md CHANGELOG.md LICENSE )
 
   s.add_runtime_dependency 'paint', '~>2.0'
-  s.required_ruby_version = '>= 2.0'
+  s.required_ruby_version = '>= 2.1'
 
   s.executables << 'restup'
 end
