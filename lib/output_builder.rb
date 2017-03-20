@@ -62,7 +62,8 @@ TEXT
 
       section 'YAML config'
       puts <<TEXT
-The client uses two different methods to find the YAML file #{Paint[config_file, colors[:help_filename]]}. It will
+If a file is not passed in with the `-c, --config` flag, then it will use the default #{Paint[config_file, colors[:help_filename]]}.
+The client uses two different methods to find the YAML configuration file. It will
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
@@ -261,26 +262,26 @@ TEXT
   class DefaultOutputBuilder < OutputBuilder
     def initialize
       colors = {
-        title_color: '003366',
+        title_color: 'c2660f',
         title_bgcolor: :white,
 
         subtitle_color: :white,
-        subtitle_bgcolor: '003366',
+        subtitle_bgcolor: 'c2660f',
 
         help_filename: :yellow,
         help_sample_request: :magenta,
         help_sample_url: :blue,
 
         request_method: :cyan,
-        request_path: '336699',
-        request_port_http: '336699',
-        request_port_tls: '339966',
+        request_path: '0f6bc2',
+        request_port_http: '0f6bc2',
+        request_port_tls: '660fc2',
         request_endpoint: :yellow,
 
-        success: :green,
+        success: '0fc266',
         warning: :yellow,
         info: :yellow,
-        error: :red
+        error: 'c20f12'
       }
       super(colors)
     end

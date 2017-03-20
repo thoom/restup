@@ -9,8 +9,7 @@ RestUp works out of the box with APIs that use Basic Authentication (though this
 To use other forms of authentication, custom headers can either be passed with each request
 or stored in the config file as described below.
 
-If a `.restup.yml` file exists, the client will pull in defaults and provide several shortcut methods
-that can simplify using a REST-based API.
+If a YAML configuration file exists (by default `.restup.yml`), the client will pull in defaults and provide several shortcut methods that can simplify using a REST-based API.
 
 If the API uses form encoded input, you can define your post in JSON format. The client
 will encode it automatically.
@@ -65,9 +64,10 @@ Console
 YAML config
 -----------
 
-The client uses two different methods to find the YAML file `.restup.yml`. It will
-first look in the current directory. If it is not present, it will then look in the current user's
-home directory.
+If a file is not passed in with the `-c, --config` flag, then it will use the default `.restup.yml`.
+The client uses two different methods to find the YAML configuration file.
+It will first look in the current directory. 
+If it is not present, it will then look in the current user's home directory.
 
 This makes it possible to use restup to connect to different APIs simply by changing
 folders.
@@ -162,7 +162,7 @@ To migrate:
 2. The CLI format changed from `restclient METHOD ENDPOINT [options]` to `restup [options] ENDPOINT`.
 3. The `-c` option is no longer available. You must use `--cert` instead.
 4. The `-m` option was created for specifying methods. So `restup -m POST ENDPOINT` instead of `restclient POST ENDPOINT`.
-5. Add `flags: { display: verbose }` to return to the previous API output.
+5. Add `flags: { display: verbose }` to the config file return to the previous API output.
 
 License
 -------
