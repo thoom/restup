@@ -1,9 +1,7 @@
 FROM ruby:alpine
 MAINTAINER Z.d. Peacock <zdp@thoomtech.com>
 
-COPY ["Gemfile", "Gemfile.lock", "/src/"]
+RUN gem install -N restup
 
-RUN cd /src && bundle install
-
-WORKDIR /restclient
-ENTRYPOINT ["restclient"]
+WORKDIR /restup
+ENTRYPOINT ["restup"]

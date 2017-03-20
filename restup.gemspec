@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
-  s.name         = 'restclient'
-  s.version      = '0.14.3'
-  s.date         = '2016-05-25'
-  s.summary      = 'Thoom RestClient: A simple REST consumer'
+  s.name         = 'restup'
+  s.version      = '1.0'
+  s.date         = '2017-03-20'
+  s.summary      = 'Thoom RestUp: A simple REST client'
   s.description  = 'A class and executable for interacting with RESTful web services'
   s.authors      = ['Z.d. Peacock']
   s.email        = 'zdp@thoomtech.com'
@@ -11,10 +11,10 @@ Gem::Specification.new do |s|
   s.files        = %w( README.md LICENSE )
   s.files        += Dir.glob('lib/**/*')
   s.files        += Dir.glob('bin/**/*')
-  s.homepage     = 'http://github.com/thoom/restclient'
+  s.homepage     = 'http://github.com/thoom/restup'
   s.license      = 'MIT'
 
   s.add_runtime_dependency 'paint', '~>1.0'
 
-  s.executables << 'restclient'
+  s.executables << 'restup'
 end

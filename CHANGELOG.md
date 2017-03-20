@@ -1,4 +1,14 @@
 ### Version Changelog
+1.0.0 RestClient => RestUp. _Finally_ out of beta.
+ - Fixes Github issue [#30](https://github.com/thoom/restclient/issues/30) by renaming RestClient to RestUp.
+ - Fixes Github issue [#28](https://github.com/thoom/restclient/issues/28). `--form` converts JSON to form data only. 
+   To use form data, manually set the header using the `-h` option or set the header in the configuration.
+ - Fixes Github issues [#24](https://github.com/thoom/restclient/issues/24) and [#25](https://github.com/thoom/restclient/issues/25). Use `--verbose` or set `flags: { display: verbose }` in config.
+ - Fixes Github issue [#31](https://github.com/thoom/restclient/issues/31). Use `-c` or `--config` to pass in another config file.
+ - Fixes Github issue [#20](https://github.com/thoom/restclient/issues/20).
+ - Fixes Github issue [#11](https://github.com/thoom/restclient/issues/11).
+
+
 0.14.3 Fixes Github issues [#21](https://github.com/thoom/restclient/issues/21) and [#26](https://github.com/thoom/restclient/issues/26). 
 You can use YAML now instead of JSON for JSON requests. Since JSON is a subset of YAML, this is not a breaking change.
 

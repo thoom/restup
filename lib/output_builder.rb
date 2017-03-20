@@ -11,14 +11,15 @@ module Thoom
 
     def initialize(colors)
       @colors = colors
+      @output = ''
     end
 
     def title(centered = true)
       return if title_output
 
-      client_copy = "Thoom::RestClient v#{Thoom::Constants::VERSION}"
+      client_copy = "Thoom::RestUp v#{Thoom::Constants::VERSION}"
       author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
-      link_copy   = '@link http://github.com/thoom/restclient'
+      link_copy   = '@link http://github.com/thoom/restup'
 
       if centered
         max         = [client_copy.length, author_copy.length, link_copy.length].max + 2
@@ -42,10 +43,10 @@ module Thoom
 
     def help(config_file, opts)
       title
-      section 'How to use the RestClient'
+      section 'How to use RestUp'
 
       puts <<TEXT
-The RestClient works out of the box with APIs that use Basic Authentication (though this is not required).
+RestUp works out of the box with APIs that use Basic Authentication (though this is not required).
 To use other forms of authentication, custom headers can either be passed with each request
 or stored in the config file as described below.
 
@@ -61,11 +62,12 @@ TEXT
 
       section 'YAML config'
       puts <<TEXT
-The client uses two different methods to find the YAML file #{Paint[config_file, colors[:help_filename]]}. It will
+If a file is not passed in with the `-c, --config` flag, then it will use the default #{Paint[config_file, colors[:help_filename]]}.
+The client uses two different methods to find the YAML configuration file. It will
 first look in the current directory. If it is not present, it will then look in the current user's
 home directory.
 
-This makes it possible to use the restclient to connect to different APIs simply by changing folders.
+This makes it possible to use restup to connect to different APIs simply by changing folders.
 
 KEY          DESC
 ----         -----
@@ -81,6 +83,11 @@ colors:     Hash of default color values
   warning:  Color to highlight warning messages.     Default: :yellow
   info:     Color to highlight info messages.        Default: :yellow
   error:    Color to highlight error messages.       Default :red
+
+flags:      Default command line options
+  display:  What to display by default.
+            Values: concise, response_only, response_code_only, succcess_only, verbose
+            Default: response_only
 
 headers:    Hash of default headers. Useful for custom headers or headers used in every request.
             The keys for this hash are strings, not symbols like the other keys
@@ -103,10 +110,10 @@ url: http://example.com/api
 user: myname
 pass: P@ssWord
 
-#{Paint['restclient get /hello/world -j', colors[:help_sample_request]]}
+#{Paint['restup -j /hello/world', colors[:help_sample_request]]}
 
 To use without the config:
-#{Paint['restclient get http://example.com/api/hello/world -u myname -p P@ssWord -j', colors[:help_sample_request]]}
+#{Paint['restup -u myname -p P@ssWord -j http://example.com/api/hello/world', colors[:help_sample_request]]}
 
 Submits a GET request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header using the
 user and pass values in the config.
@@ -125,7 +132,7 @@ pass: P@ssWord
 headers:
   X-Custom-Id: abc12345
 
-#{Paint['restclient post /hello/world -j < salutation.json', colors[:help_sample_request]]}
+#{Paint['restup -m post -j /hello/world < salutation.json', colors[:help_sample_request]]}
 
 Submits a POST request to #{Paint['http://example/api/hello/world', colors[:help_sample_url]]} with Basic Auth header
 using the user and pass values in the config. It imports the salutation.json and passes it to the API as application/json
@@ -152,7 +159,7 @@ TEXT
       out
     end
 
-    def request(client, request, filename, verbose)
+    def request(client, request, verbose)
       path  = client.uri.path
       query = ''
       query += '?' + client.uri.query if client.uri.query
@@ -178,10 +185,10 @@ TEXT
         if client.data
           header 'BODY'
 
-          if client.data.ascii_only?
-            puts client.data
-          else
-            puts "File: '#{filename}' posted, but contains non-ASCII data, so it's not echoed here."
+          begin
+            puts %w(UTF-8 ASCII-8BIT).include?(client.data.encoding.to_s) ? client.data : client.data.encode('ASCII-8BIT')
+          rescue EncodingError
+            puts "Data posted, but contains non-UTF-8 data, so it's not echoed here."
           end
         end
       else
@@ -206,25 +213,30 @@ TEXT
 
       if !response.body || response.body.empty?
         puts Paint['NONE', colors[:info]]
-      elsif !response.body.ascii_only?
-        puts Paint["RESPONSE contains non-ASCII data, so it's not echoed here.", colors[:info]]
       else
-        body = if response['content-type'].nil?
-                 response.body
-               elsif response['content-type'].include? 'json'
-                 JSON.pretty_unparse(JSON.parse(response.body))
-               elsif response['content-type'].include? 'xml'
-                 xp(response.body)
-               else
-                 response.body
+        body = response.body
+        begin
+            body.encode!('ASCII-8BIT') if body.encoding.to_s != 'ASCII-8BIT'
+
+            body = if response['content-type'].nil?
+                     body
+                   elsif response['content-type'].include? 'json'
+                     JSON.pretty_unparse(JSON.parse(body))
+                   elsif response['content-type'].include? 'xml'
+                     xp(body)
+                   else
+                     body
                end
-        puts Paint[body, response_color]
+            puts Paint[body, response_color]
+          rescue EncodingError => e
+            puts Paint["RESPONSE contains non-UTF-8 data, so it's not echoed here.", colors[:info]]
+          end
       end
     end
 
     def save_response(response, content_disposition, output)
       if content_disposition && output.nil? && response.to_hash.key?('content-disposition')
-        cd     = response['content-disposition']
+        cd = response['content-disposition']
         output = cd[cd.index('filename=') + 9..-1]
       end
 
@@ -239,62 +251,52 @@ TEXT
       end
     end
 
-    def quit_with_title(content, centered = true)
+    def quit(content, centered = true)
       title(centered)
       puts "\n#{content}"
       exit
     end
+  end
 
-    def quit(content)
-      title
-      puts "\n#{content}"
-      exit
+  # Sets up the default color set
+  class DefaultOutputBuilder < OutputBuilder
+    def initialize
+      colors = {
+        title_color: '4D7326',
+        title_bgcolor: :white,
+
+        subtitle_color: :white,
+        subtitle_bgcolor: '4D7326',
+
+        help_filename: :yellow,
+        help_sample_request: :magenta,
+        help_sample_url: :blue,
+
+        request_method: :cyan,
+        request_path: '813b5e',
+        request_port_http: '813b5e',
+        request_port_tls: '264d73',
+        request_endpoint: :yellow,
+
+        success: '277326',
+        warning: :yellow,
+        info: :yellow,
+        error: 'c20f12'
+      }
+      super(colors)
     end
+  end
 
-    def build_config
-      title(false)
-
-      section 'Configuration file installation'
-
-      puts <<INFO
-
-It looks like the configuration file is incomplete.
-At a minimum, the target URL is required.
-
-INFO
-
-      print 'Please enter the target URL: '
-      config_url = STDIN.gets.chomp
-
-      puts <<INFO
-
-For Basic Authentication, a #{Paint['username', colors[:help_filename]]} and #{Paint['password', colors[:help_filename]]} are required.
-If not using Basic Authentication, hit #{Paint['[Enter]', colors[:help_filename]]} to continue.
-
-INFO
-
-      print 'Enter a username: '
-      config_user = STDIN.gets.chomp
-      config_pass = ''
-
-      unless config_user.nil? || config_user.empty?
-        print 'Enter a password: '
-        config_pass = STDIN.gets.chomp
-      end
-
-      config_user = nil if config_user.empty?
-      config_pass = nil if config_pass.empty?
-
-      File.open('.restclient.yml', 'w') do |f|
-        f.write({ 'url' => config_url, 'user' => config_user, 'pass' => config_pass }.to_yaml)
-      end
-
-      puts <<INFO
-
-Configuration file created.
-
-Use "--help" OR "--help details" for more information on configuration options.
-INFO
+  # Outputs just the basic default colors
+  class SimpleOutputBuilder < OutputBuilder
+    def initialize
+      colors = {
+        subtitle_color: :default,
+        subtitle_bgcolor: :default,
+        title_color: :default,
+        title_bgcolor: :default
+      }
+      super(colors)
     end
   end
 end

@@ -1,2 +1,5 @@
 *.gem
-.restclient.yml
+.byebug_history
+.restup*.yml
+demo.json
+demo.yml
