@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name         = 'restclient'
-  s.version      = '0.14.3'
-  s.date         = '2016-05-25'
+  s.version      = '0.14.4'
+  s.date         = '2017-03-20'
   s.summary      = 'Thoom RestClient: A simple REST consumer'
   s.description  = 'A class and executable for interacting with RESTful web services'
   s.authors      = ['Z.d. Peacock']
@@ -13,6 +13,12 @@ Gem::Specification.new do |s|
   s.files        += Dir.glob('bin/**/*')
   s.homepage     = 'http://github.com/thoom/restclient'
   s.license      = 'MIT'
+
+  s.post_install_message = <<-MESSAGE
+!    The 'restclient' gem has been deprecated and has been replaced by 'restup'.
+!    See: https://rubygems.org/gems/restup
+!    And: https://github.com/thoom/restup
+MESSAGE
 
   s.add_runtime_dependency 'paint', '~>1.0'
 

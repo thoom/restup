@@ -19,19 +19,22 @@ module Thoom
       client_copy = "Thoom::RestClient v#{Thoom::Constants::VERSION}"
       author_copy = '@author Z.d. Peacock <zdp@thoomtech.com>'
       link_copy   = '@link http://github.com/thoom/restclient'
+      deprecated_copy = 'DEPRECATED. SEE http://github.com/thoom/restup'
 
       if centered
-        max         = [client_copy.length, author_copy.length, link_copy.length].max + 2
+        max         = [client_copy.length, author_copy.length, link_copy.length, deprecated_copy.length].max + 2
         client_copy = client_copy.center(max, ' ')
         author_copy = author_copy.center(max, ' ')
         link_copy   = link_copy.center(max, ' ')
+        deprecated_copy = deprecated_copy.center(max, ' ')
       end
 
       @title_output = true
       puts "\n",
            Paint[client_copy, colors[:title_color], colors[:title_bgcolor]],
            Paint[author_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]],
-           Paint[link_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]]
+           Paint[link_copy, colors[:subtitle_color], colors[:subtitle_bgcolor]],
+           Paint[deprecated_copy, :white, :red]
     end
 
     def header(h)
