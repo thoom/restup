@@ -171,8 +171,13 @@ begin
   client = Thoom::RestUp.new config
   client.method = method
   client.endpoint = ARGV.pop
-  client.cert = opts[:cert] if opts.key? :cert
-
+  
+  if opts.key? :cert
+    f = File.read opts[:cert]
+    
+    client.cert = f
+  end
+  
   headers_default = config.get(:headers, {})
   headers_default.each { |key, val| client.headers[key] = val } if headers_default.respond_to? :each
 
@@ -190,6 +195,11 @@ begin
     if !client.headers.key?('content-type') || client.headers['content-type'].include?('json')
       data = YAML.load(data).to_json
     end
+    
+    if request.content_type == 'application/x-www-form-urlencoded'
+        yaml = YAML.load(data)
+        data = URI.encode_www_form(yaml)
+    end
 
     client.data = data
   end
@@ -197,6 +207,11 @@ begin
   request = client.request
   unless response_code_only || success_only || response_only
     output_builder.request(client, request, filename, verbose)
+  end
+  
+  # This just sets a default to JSON
+  if %w(post put patch).include?(method.downcase) && (request.content_type.nil? || request.content_type.empty?)
+    request.content_type = config.get(:json, Constants::MIME_JSON)
   end
 
   before = Time.now

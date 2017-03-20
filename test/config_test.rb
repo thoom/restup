@@ -1,8 +1,9 @@
+require 'byebug' if ENV['DEBUG']
 require 'minitest/autorun'
 require_relative '../lib/config.rb'
 
 # Test the configuration system
-class TestConfig < MiniTest::Unit::TestCase
+class TestConfig < Minitest::Test
   def setup
     hash = {
       url: 'http://github.com/thoom/restup',

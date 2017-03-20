@@ -250,51 +250,5 @@ TEXT
       puts "\n#{content}"
       exit
     end
-
-    def build_config
-      title(false)
-
-      section 'Configuration file installation'
-
-      puts <<INFO
-
-It looks like the configuration file is incomplete.
-At a minimum, the target URL is required.
-
-INFO
-
-      print 'Please enter the target URL: '
-      config_url = STDIN.gets.chomp
-
-      puts <<INFO
-
-For Basic Authentication, a #{Paint['username', colors[:help_filename]]} and #{Paint['password', colors[:help_filename]]} are required.
-If not using Basic Authentication, hit #{Paint['[Enter]', colors[:help_filename]]} to continue.
-
-INFO
-
-      print 'Enter a username: '
-      config_user = STDIN.gets.chomp
-      config_pass = ''
-
-      unless config_user.nil? || config_user.empty?
-        print 'Enter a password: '
-        config_pass = STDIN.gets.chomp
-      end
-
-      config_user = nil if config_user.empty?
-      config_pass = nil if config_pass.empty?
-
-      File.open('.restup.yml', 'w') do |f|
-        f.write({ 'url' => config_url, 'user' => config_user, 'pass' => config_pass }.to_yaml)
-      end
-
-      puts <<INFO
-
-Configuration file created.
-
-Use "--help" OR "--help details" for more information on configuration options.
-INFO
-    end
   end
 end

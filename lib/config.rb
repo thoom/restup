@@ -127,10 +127,10 @@ class Hash
   def symbolize_keys
     transform_keys do |key|
       begin
-                            key.to_sym
-                          rescue
-                            key
-                          end
+        key.to_sym
+      rescue
+        key
+      end
     end
   end
   alias to_options symbolize_keys
@@ -140,10 +140,10 @@ class Hash
   def symbolize_keys!
     transform_keys! do |key|
       begin
-                             key.to_sym
-                           rescue
-                             key
-                           end
+        key.to_sym
+      rescue
+        key
+      end
     end
   end
   alias to_options! symbolize_keys!
@@ -215,10 +215,10 @@ class Hash
   def deep_symbolize_keys
     deep_transform_keys do |key|
       begin
-                                 key.to_sym
-                               rescue
-                                 key
-                               end
+        key.to_sym
+      rescue
+        key
+      end
     end
   end
 
@@ -228,10 +228,10 @@ class Hash
   def deep_symbolize_keys!
     deep_transform_keys! do |key|
       begin
-                                  key.to_sym
-                                rescue
-                                  key
-                                end
+        key.to_sym
+      rescue
+        key
+      end
     end
   end
 
