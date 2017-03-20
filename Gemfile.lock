@@ -23,7 +23,7 @@ PLATFORMS
 DEPENDENCIES
   byebug
   minitest
-  paint
+  paint (~> 2.0)
   rake
   webmock
 
