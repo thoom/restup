@@ -11,8 +11,6 @@ require 'optparse'
 require 'json'
 require 'yaml'
 
-require 'byebug' if ENV['DEBUG']
-
 if ARGV.empty?
   Thoom::SimpleOutputBuilder.new.quit(
     'Missing required options. Use "--help" OR "--help details" for more information', false

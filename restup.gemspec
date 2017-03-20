@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name         = 'restup'
   s.version      = '1.0'
-  s.date         = '2017-03-15'
+  s.date         = '2017-03-20'
   s.summary      = 'Thoom RestUp: A simple REST client'
   s.description  = 'A class and executable for interacting with RESTful web services'
   s.authors      = ['Z.d. Peacock']
