@@ -67,7 +67,7 @@ parser = OptionParser.new do |o|
     opts[:config] = config
   end
 
-  o.on('-e', '--env ENVIRONMENT', 'Sets YAML environment for the request') do |_e|
+  o.on('-e', '--env ENVIRONMENT', 'Sets YAML environment for the request') do |env|
     opts[:env] = env.to_sym
   end
 
