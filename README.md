@@ -15,6 +15,13 @@ If a YAML configuration file exists (by default `.restup.yml`), the client will 
 If the API uses form encoded input, you can define your post in JSON format. The client
 will encode it automatically.
 
+
+Alternative REST Client
+-----------------------
+
+If using `restup` only for the cli (not the lib files) and dealing primarily with JSON APIs, [Gulp](https://github.com/thoom/gulp) is a faster, simpler alternative. It has a similar configuration to `restup`, provides additional features, and is available in a super-slim Docker image (13 mb) or various binaries (linux/macOS). No additional language dependencies (like Ruby). Check it out!
+
+
 Installation
 ------------
 
