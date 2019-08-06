@@ -33,7 +33,7 @@ GEM
     net-http-persistent (3.0.0)
       connection_pool (~> 2.2)
     net-http-pipeline (1.0.1)
-    paint (2.0.0)
+    paint (2.1.0)
     public_suffix (2.0.5)
     pusher-client (0.6.2)
       json
@@ -63,7 +63,7 @@ PLATFORMS
 DEPENDENCIES
   byebug
   minitest
-  paint (~> 2.0)
+  paint (~> 2.1)
   rake
   travis
   webmock

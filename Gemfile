@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'paint', '~>2.0'
+gem 'paint', '~>2.1'
 
 group :development do
   gem 'byebug'
