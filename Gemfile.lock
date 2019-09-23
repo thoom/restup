@@ -27,7 +27,7 @@ GEM
     json (2.0.3)
     launchy (2.4.3)
       addressable (~> 2.3)
-    minitest (5.10.1)
+    minitest (5.12.0)
     multi_json (1.12.1)
     multipart-post (2.0.0)
     net-http-persistent (3.0.0)
