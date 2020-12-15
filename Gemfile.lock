@@ -24,7 +24,7 @@ GEM
       net-http-pipeline
     hashdiff (0.3.2)
     highline (1.7.8)
-    json (2.0.3)
+    json (2.4.0)
     launchy (2.4.3)
       addressable (~> 2.3)
     minitest (5.10.1)
